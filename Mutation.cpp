@@ -135,7 +135,7 @@ void Mutation::toggleNode(Genome* genome){
 	// Get random hidden node
 	// Toggle enabled state
 	int index = rand() % genome->getHiddenNodeKeys()->size();
-	bool state = genome->getNodeGenes()->operator=[][genome->getHiddenNodeKeys()->operator[][index]].enabled;
+	bool state = genome->getNodeGenes()->operator[][genome->getHiddenNodeKeys()->operator[][index]].enabled;
 	genome->getNodeGenes()->operator[][genome->getHiddenNodeKeys()->operator[][index]].enabled = !state;
 }
 
@@ -144,5 +144,5 @@ void Mutation::toggleConnection(Genome* genome){
 	// Toggle enabled state
 	int index = rand() % genome->getConnectionKeys()->size();
 	bool state = genome->getConnectionGenes()->operator[][genome->getConnectionKeys()->operator[][index]]->enabled;
-	genome->getConnectionGenes()->operator=[][genome->getConnectionKeys()->operator[][index]]->enabled = !state; 
+	genome->getConnectionGenes()->operator[][genome->getConnectionKeys()->operator[][index]]->enabled = !state; 
 }
