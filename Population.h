@@ -19,7 +19,8 @@ struct Innovation{
 
 class Population{
 private:
-    static int innovationNumber;
+	int generation;
+	int innovationNumber;
     std::vector<Genome*>* organisms;
 	std::vector<Species*>* speciesList;
 	std::vector<Innovation*>* innovations;
@@ -28,9 +29,11 @@ public:
     Population();
 
 	int updateInnovations(MutationType, GeneType, int, int);
+	int getGeneration();
 	std::vector<Genome*>* getOrganisms();
 	std::vector<Species*>* getSpeciesList();
 	std::vector<Innovation*>* getInnovations();
+	void initializedPopulation();
 	void evaluate(void*);
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
 };
