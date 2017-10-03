@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// TODO -- change to static variables instead of macros
+
 #define MUTATION_RATE_ADD_NODE 0.05
 #define MUTATION_RATE_ADD_CONNECTION 0.05
 #define MUTATION_RATE_PERTURB_BIAS 0.05
@@ -13,5 +15,8 @@
 
 #define CONNECTION_GENE_INITIAL_WEIGHT 1.0
 #define CONNECTION_GENE_MAX_WEIGHT_PERTURBATION 0.5
+
+#define GENOME_NUM_INPUT_NODES 2
+#define GENOME_NUM_OUTPUT_NODES 1
 
 #endif

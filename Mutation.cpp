@@ -1,7 +1,6 @@
 #include "Mutation.h"
-#include "Population.h"
 
-void Mutation::mutate(Genome* genome){
+void Mutation::mutate(Genome* genome, Population* population){
 	double r;
 	for(int i = 0; i < MutationType::End; i++){
 		r = ((double)rand() / (RAND_MAX));
@@ -9,12 +8,12 @@ void Mutation::mutate(Genome* genome){
 		switch(i){
 		case(MutationType::AddNode):
 			if(r < MUTATION_RATE_ADD_NODE){
-				Mutation::addNode(genome);
+				Mutation::addNode(genome, population);
 			}
 			break;
 		case(MutationType::AddConnection):
 			if(r < MUTATION_RATE_ADD_CONNECTION){
-				Mutation::addConnection(genome);
+				Mutation::addConnection(genome, population);
 			}
 			break;
 		case(MutationType::PerturbBias):
@@ -41,17 +40,16 @@ void Mutation::mutate(Genome* genome){
 	}
 }
 
-void Mutation::addNode(Genome* genome){
+void Mutation::addNode(Genome* genome, Population* population){
 	// Get random connection key
 	// Add new node
 	// Add two new connections where previous connection was
 	// Disable connection
 
 	int index = rand() % genome->getConnectionKeys()->size();
-	ConnectionGene* currentConnectionGene = genome->getConnectionGenes[index];
+	ConnectionGene* currentConnectionGene = genome->getConnectionGenes()->operator[][index];
 
-	int nodeGeneInnovation = Population::getInnovationNumber();
-	Population::incrementInnovationNumber();
+	int nodeGeneInnovation = population->updateInnovations(MutationType::AddNode, GeneType::GeneTypeNode, currentConnectionGene->inputId, currentConnectionGene->outputId);
 	NodeGene* newNodeGene = new NodeGene();
 	newNodeGene->innovation = nodeGeneInnovation;
 	newNodeGene->bias = NODE_GENE_INITIAL_BIAS;
@@ -63,25 +61,23 @@ void Mutation::addNode(Genome* genome){
 	genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(nodeGeneInnovation, newNodeGene));
 
 	ConnectionGene* inputConnectionGene = new ConnectionGene();
-	inputConnectionGene->innovation = Population::getInnovationNumber();
+	inputConnectionGene->innovation = population->updateInnovations(MutationType::AddNode, GeneType::GeneTypeConnection, currentConnectionGene->inputId, nodeGeneInnovation);
 	inputConnectionGene->inputId = currentConnectionGene->inputId;
 	inputConnectionGene->outputId = nodeGeneInnovation;
 	inputConnectionGene->weight = 1.0;
 	inputConnectionGene->enabled = true;
-	Population::incrementInnovationNumber();
 
 	ConnectionGene* outputConnectionGene = new ConnectionGene();
-	outputConnectionGene->innovation = Population::getInnovationNumber();
+	outputConnectionGene->innovation = population->updateInnovations(MutationType::AddNode, GeneType::GeneTypeConnection, nodeGeneInnovation, currentConnectionGene->outputId);
 	outputConnectionGene->inputId = nodeGeneInnovation;
 	outputConnectionGene->outputId = currentConnectionGene->outputId;
 	outputConnectionGene->weight = currentConnectionGene->weight;
 	outputConnectionGene->enabled = true;
-	Population::incrementInnovationNumber();
 
 	currentConnectionGene->enabled = false;
 }
 
-void Mutation::addConnection(Genome* genome){
+void Mutation::addConnection(Genome* genome, Population* population){
 	// Get random two random nodes (output cannot be of type input)
 	// Add new connection between them
 	
@@ -105,12 +101,11 @@ void Mutation::addConnection(Genome* genome){
 	outputNodeGene = genome->getNodeGenes()->operator[][outputKey];
 
 	ConnectionGene* newConnectionGene = new ConnectionGene();
-	newConnectionGene->innovation = Population::getInnovationNumber();
+	newConnectionGene->innovation = population->updateInnovations(MutationType::AddConnection, GeneType::GeneTypeConnection, inputKey, outputKey);
 	newConnectionGene->inputId = inputKey;
 	newConnectionGene->outputId = outputKey;
 	newConnectionGene->weight = CONNECTION_GENE_INITIAL_WEIGHT;
 	newConnectionGene->enabled = true;
-	Population::incrementInnovationNumber();
 
 	delete currentOutputKeys;
 }

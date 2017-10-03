@@ -4,18 +4,35 @@
 #include "Network.h"
 #include "Mutation.h"
 
+struct Species{
+	Genome* representative;
+	std::vector<Genome*>* members;
+};
+
+struct Innovation{
+	int innovationNumber;
+	MutationType mutationType;
+	GeneType geneType;
+	int inputId;
+	int outputId;
+};
+
 class Population{
 private:
     static int innovationNumber;
-    std::map<int, std::vector<Genome *>*>* organisms;
+    std::vector<Genome*>* organisms;
+	std::vector<Species*>* speciesList;
+	std::vector<Innovation*>* innovations;
 
 public:
     Population();
 
-    static int getInnovationNumber();
-	static void incrementInnovationNumber();
-	std::map<int, std::vector<Genome *>*>* getOrganisms();
+	int updateInnovations(MutationType, GeneType, int, int);
+	std::vector<Genome*>* getOrganisms();
+	std::vector<Species*>* getSpeciesList();
+	std::vector<Innovation*>* getInnovations();
 	void evaluate(void *);
-}
+	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
+};
 
 #endif
