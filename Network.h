@@ -16,7 +16,6 @@ private:
 
 public:
 	Network(Genome*);
-
 };
 
 #endif

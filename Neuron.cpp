@@ -26,7 +26,7 @@ void Neuron::activate(){
 	double newActivation = 0.0;
 
 	for(int i = 0; i < inputs->size(); i++){
-		newActivation += ((*inputs)[i]->from->getActivation()) * ((*inputs)[i]->weight);
+		newActivation += (inputs->operator[][i]->from->getActivation()) * (inputs->operator[][i]->weight);
 	}
 	newActivation += bias;
 	activation = sigmoid(newActivation);

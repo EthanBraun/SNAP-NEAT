@@ -13,7 +13,7 @@ Network::Network(Genome* genome){
 	NodeGene* currentNodeGene;
 
 	for(int i = 0; i < nodeKeys->size(); i++){
-		currentNodeGene = (*nodeGenes)[(*nodeKeys)[i]];
+		currentNodeGene = nodeGenes->operator[][nodeKeys->operator[][i]];
 		switch(currentNodeGene->type){
 		case(NodeType::Input):
 			inputLayerKeys->push_back(currentNodeGene->innovation);
@@ -38,28 +38,28 @@ Network::Network(Genome* genome){
 	Connection* connection = NULL;
 
 	for(int i = 0; i < connectionKeys->size(); i++){
-		currentConnectionGene = (*connectionGenes)[(*connectionKeys)[i]];
+		currentConnectionGene = connectionGenes->operator[][connectionKeys->operator[][i]];
 		inputNode = NULL;
 		outputNode = NULL;
 
 		if(inputLayer->count(currentConnectionGene->inputId) != 0){
-			inputNode = (*inputLayer)[currentConnectionGene->inputId];
+			inputNode = inputLayer->operator[][currentConnectionGene->inputId];
 		}
 		else if(hiddenLayer->count(currentConnectionGene->inputId) != 0){
-			inputNode = (*hiddenLayer)[currentConnectionGene->inputId];
+			inputNode = hiddenLayer->operator[][currentConnectionGene->inputId];
 		}
 		else{
-			inputNode = (*outputLayer)[currentConnectionGene->inputId];
+			inputNode = outputLayer->operator[][currentConnectionGene->inputId];
 		}
 
 		if(inputLayer->count(currentConnectionGene->outputId) != 0){
-			outputNode = (*inputLayer)[currentConnectionGene->outputId];
+			outputNode = inputLayer->operator[][currentConnectionGene->outputId];
 		}
 		else if(hiddenLayer->count(currentConnectionGene->outputId) != 0){
-			outputNode = (*hiddenLayer)[currentConnectionGene->outputId];
+			outputNode = hiddenLayer->operator[][currentConnectionGene->outputId];
 		}
 		else{
-			outputNode = (*outputLayer)[currentConnectionGene->outputId];
+			outputNode = outputLayer->operator[][currentConnectionGene->outputId];
 		}
 
 		connection = new Connection();

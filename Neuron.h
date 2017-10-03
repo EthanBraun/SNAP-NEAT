@@ -6,8 +6,8 @@
 #include <vector>
 
 struct Connection {
-	Neuron *from;
-	Neuron *to;
+	Neuron* from;
+	Neuron* to;
 	double weight;
 };
 
@@ -16,8 +16,8 @@ private:
 	int innovation;
 	double activation;
 	double bias;
-	std::vector<Connection *>* inputs;
-	std::vector<Connection *>* outputs;
+	std::vector<Connection*>* inputs;
+	std::vector<Connection*>* outputs;
 
 public:
 	Neuron(int, double);

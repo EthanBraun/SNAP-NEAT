@@ -31,7 +31,7 @@ public:
 	std::vector<Genome*>* getOrganisms();
 	std::vector<Species*>* getSpeciesList();
 	std::vector<Innovation*>* getInnovations();
-	void evaluate(void *);
+	void evaluate(void*);
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
 };
 
