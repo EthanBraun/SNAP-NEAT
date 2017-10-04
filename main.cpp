@@ -5,7 +5,7 @@ int main(int argc, char *argv[]){
 	pop->evaluate(fitnessFunction);	
 }
 
-double fitnessFunction(Genome organism){
+double fitnessFunction(Genome* organism){
 	// Write problem-specific fitness function here
 	// More fit networks should return a greater value than less fit networks
 }

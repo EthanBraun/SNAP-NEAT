@@ -3,6 +3,7 @@
 
 #include "Network.h"
 #include "Mutation.h"
+#include <algorithm>
 
 struct Species{
 	Genome* representative;
@@ -33,9 +34,11 @@ public:
 	std::vector<Genome*>* getOrganisms();
 	std::vector<Species*>* getSpeciesList();
 	std::vector<Innovation*>* getInnovations();
-	void initializedPopulation();
+	void initializePopulation();
+	void speciatePopulation();
 	void evaluate(void*);
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
+	double _calculateCompatibilityDistance(Genome*, Genome*);
 };
 
 #endif

@@ -52,7 +52,7 @@ void Mutation::addNode(Genome* genome, Population* population){
 	int nodeGeneInnovation = population->updateInnovations(MutationType::AddNode, GeneType::GeneTypeNode, currentConnectionGene->inputId, currentConnectionGene->outputId);
 	NodeGene* newNodeGene = new NodeGene();
 	newNodeGene->innovation = nodeGeneInnovation;
-	newNodeGene->bias = NODE_GENE_INITIAL_BIAS;
+	newNodeGene->bias = 0.0;
 	newNodeGene->type = NodeType::Hidden;
 	newNodeGene->enabled = true;
 
