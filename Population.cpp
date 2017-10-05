@@ -96,41 +96,79 @@ bool Population::_innovationEqual(Innovation* innovation, MutationType mType, Ge
 	return (innovation->mutationType == mType && innovation->geneType == gType && innovation->inputId == input && innovation->outputId == output);
 }
 
+// Optimize this once everything works 
 double Population::_calculateCompatibilityDistance(Genome* a, Genome* b){
 	int excessGenes = 0;
 	int disjointGenes = 0;
+	int compatibilityDistance = 0;	
+	int maxPossibleMatchingNodeGeneInnovation = 0;
+	int maxNodeGeneInnovation = 0;
+	int maxPossibleMatchingConnectionGeneInnovation = 0;
+	int maxConnectionGeneInnovation = 0;
+
+	int matchingConnectionGeneCount = 0;
+	double matchingConnectionGeneWeightDifferenceSum = 0.0;
 	int maxTotalGenomeSize = std::max(a->getNodeKeys()->size() + a->getConnectionKeys()->size(), b->getNodeKeys()->size() + b->getConnectionKeys()->size());
-	int compatibilityDistance = 0;
 
-	// TODO: optimize this function once engine is working
+	if(a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1] < b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1]){
+		maxPossibleMatchingNodeGeneInnovation = a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1];
+		maxPossibleNodeGeneInnovation = b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1];
+	}
+	else{
+		maxPossibleMatchingNodeGeneInnovation = b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1];
+		maxPossibleNodeGeneInnovation = a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1];
+	}
 
-	excessGenes += std::abs((int)a->getNodeKeys()->size() - (int)b->getNodeKeys()->size());
-	excessGenes += std::abs((int)a->getConnectionKeys()->size() - (int)b->getConnectionKeys()->size());
+	if(a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1] < b->getConnectionKeysb->getConnectionKeys()->size()){
+		maxPossibleMatchingConnectionGeneInnovation = a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1];
+		maxPossibleConnectionGeneInnovation = b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1];
+	}
+	else{
+		maxPossibleMatchingConnectionGeneInnovation = b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1];
+		maxPossibleConnectionGeneInnovation = a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1];
+	}
 
-	int minNodeGeneSize = std::min(a->getNodeKeys()->size(), b->getNodeKeys()->size());
-	for(int i = 0; i < minNodeGeneSize; i++){
-		if(std::find(b->getNodeKeys()->begin(), b->getNodeKeys()->end(), a->getNodeKeys()->operator[][i]) == b->getNodeKeys()->end()){
+	bool aContainsInnovation = false;
+	bool bContainsInnovation = false;
+
+	for(int i = 0; i < maxPossibleMatchingNodeGeneInnovation; i++){
+		aContainsInnovation = std::find(a->getNodeKeys()->begin(), a->getNodeKeys()->end(), i) != a->getNodeKeys()->end();
+		bContainsInnovation = std::find(b->getNodeKeys()->begin(), b->getNodeKeys()->end(), i) != b->getNodeKeys()->end();
+		if(aContainsInnovation != bContainsInnovation){
 			disjointGenes++;
 		}
-		if(std::find(a->getNodeKeys()->begin(), a->getNodeKeys()->end(), b->getNodeKeys()->operator[][i]) == a->getNodeKeys()->end()){
-			disjointGenes++;
+	}	
+	for(int i = maxPossibleMatchingNodeGeneInnovation + 1; i <= maxNodeGeneInnovation; i++){
+		aContainsInnovation = std::find(a->getNodeKeys()->begin(), a->getNodeKeys()->end(), i) != a->getNodeKeys()->end();
+		bContainsInnovation = std::find(b->getNodeKeys()->begin(), b->getNodeKeys()->end(), i) != b->getNodeKeys()->end();
+		if(aContainsInnovation || bContainsInnovation){
+			excessGenes++;
 		}
 	}
-	
-	int matchingConnectionGeneCount = 0;
-	double matchingGeneWeightSum = 0.0;
 
-	int minConnectionGeneSize = std::min(a->getConnectionKeys()->size(), b->getConnectionKeys()->size());
-	for(int i = 0; i < minConnectionGeneSize; i++){
-		if(std::find(b->getConnectionKeys()->begin(), b->getConnectionKeys()->end(), a->getConnectionKeys()->operator[][i]) == b->getConnectionKeys()->end()){
+	for(int i = 0; i < maxPossibleMatchingConnectionGeneInnovation; i++){
+		aContainsInnovation = std::find(a->getConnectionKeys()->begin(), a->getConnectionKeys()->end(), i) != a->getConnectionKeys()->end();
+		bContainsInnovation = std::find(b->getConnectionKeys()->begin(), b->getConnectionKeys()->end(), i) != b->getConnectionKeys()->end();
+		if(aContainsInnovation != bContainsInnovation){
 			disjointGenes++;
 		}
-		if(std::find(a->getConnectionKeys()->begin(), a->getConnectionKeys()->end(), b->getConnectionKeys()->operator[][i]) == a->getConnectionKeys()->end()){
-			disjointGenes++;
+		else if(aContainsInnovation && bContainsInnovation){
+			matchingConnectionGeneCount++;
+			matchingConnectionGeneWeightDifferenceSum += std::abs(a->getConnectionGenes()->operator[][i]->weight - b->getConnectionGenes()->operator[][i]->weight);
+		}
+	}
+
+	for(int i = maxPossibleMatchingConnectionGeneInnovation + 1; i <= maxConnectionGeneInnovation; i++){
+		aContainsInnovation = std::find(a->getConnectionKeys()->begin(), a->getConnectionKeys()->end(), i) != a->getConnectionKeys()->end();
+		bContainsInnovation = std::find(b->getConnectionKeys()->begin(), b->getConnectionKeys()->end(), i) != b->getConnectionKeys()->end();
+		if(aContainsInnovation || bContainsInnovation){
+			excessGenes++;
 		}
 	}
 
 	compatibilityDistance += (GENOME_COMPATIBILITY_COEFFICIENT_ONE * excessGenes) / maxTotalGenomeSize;
 	compatibilityDistance += (GENOME_COMPATIBILITY_COEFFICIENT_TWO * disjointGenes) / maxTotalGenomeSize;
-	compatibilityDistance += GENOME_COMPATIBILITY_COEFFICIENT_THREE * 
+	compatibilityDistance += GENOME_COMPATIBILITY_COEFFICIENT_THREE * ((double)matchingConnectionGeneWeightDifferenceSum / (double)matchingConnectionGeneCount);
+
+	return compatibilityDistance;
 }
