@@ -5,6 +5,7 @@ Genome::Genome(){
 	connectionKeys = new std::vector<int>();
 	nodeGenes = new std::map<int, NodeGene*>();
 	connectionGenes = new std::map<int, ConnectionGene*>();
+	species = -1;
 }
 
 std::vector<int>* Genome::getHiddenNodeKeys(){
@@ -25,4 +26,12 @@ std::map<int, NodeGene*>* Genome::getNodeGenes(){
 
 std::map<int, ConnectionGene*>* Genome::getConnectionGenes(){
 	return connectionGenes;
+}
+
+int Genome::getSpecies(){
+	return species;
+}
+
+void Genome::setSpecies(int speciesVal){
+	species = speciesVal;
 }

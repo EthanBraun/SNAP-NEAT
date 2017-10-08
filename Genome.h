@@ -27,6 +27,7 @@ private:
 	std::vector<int>* connectionKeys;
 	std::map<int, NodeGene*>* nodeGenes;
 	std::map<int, ConnectionGene*>* connectionGenes;
+	int species;
 public:
 	Genome();
 
@@ -35,6 +36,8 @@ public:
 	std::vector<int>* getConnectionKeys();
 	std::map<int, NodeGene*>* getNodeGenes();
 	std::map<int, ConnectionGene*>* getConnectionGenes();
+	int getSpecies();
+	void setSpecies(int);
 };
 
 #endif

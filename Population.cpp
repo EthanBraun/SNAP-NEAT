@@ -69,10 +69,34 @@ void Population::initializePopulation(){
 }
 
 void Population::speciatePopulation(){
-
+	// For each organism:
+	//		For each species:
+	//			If compatibility distance between organism and representative is below threshold:
+	//				add organism to species and break
+	//		If no compatible species exists:
+	//			Create new species with organism as representative
+	bool compatibleSpeciesFound;
+	for(int i = 0; i < organisms->size(); i++){
+		compatibleSpeciesFound = false;
+		for(int j = 0; j < speciesList->size(); j++){
+			if(calculateCompatibilityDistance(organisms->operator[][i], speciesList->operator[][j]->representative) < GENOME_COMPATIBILITY_THRESHOLD){
+				speciesList->operator[][j]->members->push_back(organisms->operator[][i]);
+				organisms->operator[][i]->setSpecies(j);
+				compatibleSpeciesFound = true;
+				break;
+			}
+		}
+		if(!compatibleSpeciesFound){
+			Species* newSpecies = new Species();
+			newSpecies->representative = organisms->operator[][i];
+			newSpecies->members = new std::vector<Genome*>();
+			newSpecies->members->push_back(newSpecies->representative);
+			speciesList->push_back(newSpecies);
+		}
+	}
 }
 
-void Population::evaluate(void* evaluationFunction){
+void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 	// Initialize population
 	// For each generation:
 	//		Clear innovations and species members
@@ -89,7 +113,14 @@ void Population::evaluate(void* evaluationFunction){
 			speciesList->operator[][j]->members->clear();
 		}
 		speciatePopulation();
+		for(int j = 0; j < organisms->size(); j++){
+			evaluateGenome(evaluationFunction, organisms->operator[][j]);
+		}
 	}
+}
+
+void Population::evaluateGenome(void* evaluationFunction(Network* network), Genome* currentGenome){
+
 }
 
 bool Population::_innovationEqual(Innovation* innovation, MutationType mType, GeneType gType, int input, int output){
@@ -97,7 +128,7 @@ bool Population::_innovationEqual(Innovation* innovation, MutationType mType, Ge
 }
 
 // Optimize this once everything works 
-double Population::_calculateCompatibilityDistance(Genome* a, Genome* b){
+double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	int excessGenes = 0;
 	int disjointGenes = 0;
 	int compatibilityDistance = 0;	
@@ -112,20 +143,20 @@ double Population::_calculateCompatibilityDistance(Genome* a, Genome* b){
 
 	if(a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1] < b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1]){
 		maxPossibleMatchingNodeGeneInnovation = a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1];
-		maxPossibleNodeGeneInnovation = b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1];
+		maxNodeGeneInnovation = b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1];
 	}
 	else{
 		maxPossibleMatchingNodeGeneInnovation = b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1];
-		maxPossibleNodeGeneInnovation = a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1];
+		maxNodeGeneInnovation = a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1];
 	}
 
-	if(a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1] < b->getConnectionKeysb->getConnectionKeys()->size()){
+	if(a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1] < b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1]){
 		maxPossibleMatchingConnectionGeneInnovation = a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1];
-		maxPossibleConnectionGeneInnovation = b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1];
+		maxConnectionGeneInnovation = b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1];
 	}
 	else{
 		maxPossibleMatchingConnectionGeneInnovation = b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1];
-		maxPossibleConnectionGeneInnovation = a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1];
+		maxConnectionGeneInnovation = a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1];
 	}
 
 	bool aContainsInnovation = false;
@@ -169,6 +200,7 @@ double Population::_calculateCompatibilityDistance(Genome* a, Genome* b){
 	compatibilityDistance += (GENOME_COMPATIBILITY_COEFFICIENT_ONE * excessGenes) / maxTotalGenomeSize;
 	compatibilityDistance += (GENOME_COMPATIBILITY_COEFFICIENT_TWO * disjointGenes) / maxTotalGenomeSize;
 	compatibilityDistance += GENOME_COMPATIBILITY_COEFFICIENT_THREE * ((double)matchingConnectionGeneWeightDifferenceSum / (double)matchingConnectionGeneCount);
+	// Potentially add fourth coefficient for matching node biases
 
 	return compatibilityDistance;
 }

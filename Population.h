@@ -36,9 +36,10 @@ public:
 	std::vector<Innovation*>* getInnovations();
 	void initializePopulation();
 	void speciatePopulation();
-	void evaluate(void*);
+	void evaluatePopulation(void* evaluationFunction(Network* network));
+	void evaluateGenome(void* evaluationFunction(Network* network), Genome*);
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
-	double _calculateCompatibilityDistance(Genome*, Genome*);
+	double calculateCompatibilityDistance(Genome*, Genome*);
 };
 
 #endif
