@@ -26,7 +26,7 @@ Network::Network(Genome* genome){
 		case(NodeType::Output):
 			outputLayerKeys->push_back(currentNodeGene->innovation);
 			outputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, currentNodeGene->bias)));
-			break;		
+			break;
 		}
 	}
 
@@ -72,4 +72,24 @@ Network::Network(Genome* genome){
 	}
 
 	// TODO: Establish activation order of neurons	
+}
+
+Network::~Network(){
+	for(int i = 0; i < inputLayerKeys->size(); i++){
+		delete inputLayer->operator[][inputLayerKeys->operator[][i]];
+	}
+	delete inputLayer;
+	delete inputLayerKeys;
+
+	for(int i = 0; i < hiddenLayerKeys->size(); i++){
+		delete hiddenLayer->operator[][hiddenLayerKeys->operator[][i]];
+	}
+	delete hiddenLayer;
+	delete hiddenLayerKeys;
+
+	for(int i = 0; i < outputLayerKeys->size(); i++){
+		delete outputLayer->operator[][outputLayerKeys->operator[][i]];
+	}
+	delete outputLayer;
+	delete outputLayerKeys;
 }

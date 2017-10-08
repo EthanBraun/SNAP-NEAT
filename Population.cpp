@@ -120,7 +120,10 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 }
 
 void Population::evaluateGenome(void* evaluationFunction(Network* network), Genome* currentGenome){
-
+	Network* phenotype = new Network(currentGenome);
+	currentGenome->setFitness(*(double*)(evaluationFunction(phenotype)));
+	currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[][currentGenome->getSpecies()]->members->size());
+	delete phenotype;
 }
 
 bool Population::_innovationEqual(Innovation* innovation, MutationType mType, GeneType gType, int input, int output){

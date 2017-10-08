@@ -32,6 +32,22 @@ int Genome::getSpecies(){
 	return species;
 }
 
+double Genome::getFitness(){
+	return fitness;
+}
+
+double Genome::getSharedFitness(){
+	return sharedFitness;
+}
+
 void Genome::setSpecies(int speciesVal){
 	species = speciesVal;
+}
+
+void Genome::setFitness(double fitnessVal){
+	fitness = fitnessVal;
+}
+
+void Genome::setSharedFitness(double sharedFitnessVal){
+	sharedFitness = sharedFitnessVal;
 }

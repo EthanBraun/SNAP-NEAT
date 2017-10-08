@@ -4,6 +4,20 @@ Neuron::Neuron(int innovationNumber, double biasVal){
 	innovation = innovationNumber;
 	activation = 0.0;
 	bias = biasVal;
+	inputs = new std::vector<Connection*>();
+	outputs = new std::vector<Connection*>();
+}
+
+Neuron::~Neuron(){
+	for(int i = 0; i < inputs->size(); i++){
+		delete inputs->operator[][i];
+	}
+	delete inputs;
+
+	for(int i = 0; i < outputs->size(); i++){
+		delete outputs->operator[][i];
+	}
+	delete outputs;
 }
 
 int Neuron::getInnovation(){

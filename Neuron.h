@@ -21,6 +21,7 @@ private:
 
 public:
 	Neuron(int, double);
+	~Neuron();
 	
 	int getInnovation();
 	double getActivation();

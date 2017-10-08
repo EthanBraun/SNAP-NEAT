@@ -28,6 +28,8 @@ private:
 	std::map<int, NodeGene*>* nodeGenes;
 	std::map<int, ConnectionGene*>* connectionGenes;
 	int species;
+	double fitness;
+	double sharedFitness;
 public:
 	Genome();
 
@@ -37,7 +39,11 @@ public:
 	std::map<int, NodeGene*>* getNodeGenes();
 	std::map<int, ConnectionGene*>* getConnectionGenes();
 	int getSpecies();
+	double getFitness();
+	double getSharedFitness();
 	void setSpecies(int);
+	void setFitness(double);
+	void setSharedFitness(double);
 };
 
 #endif
