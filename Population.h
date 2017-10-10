@@ -36,6 +36,9 @@ public:
 	std::vector<Innovation*>* getInnovations();
 	void initializePopulation();
 	void speciatePopulation();
+	void reducePopulation();
+	void repopulate();
+	void setSpeciesReps();
 	void evaluatePopulation(void* evaluationFunction(Network* network));
 	void evaluateGenome(void* evaluationFunction(Network* network), Genome*);
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);

@@ -22,11 +22,12 @@ int Population::updateInnovations(MutationType mType, GeneType gType, int input,
 	newInnovation->innovationNumber = innovationNumber;
 	newInnovation->mutationType = mType;
 	newInnovation->geneType = gType;
-	newInnovation->inputId = input;
-	newInnovation->outputId = output;
-	innovationNumber += 1;
-	
-	return newInnovation->innovationNumber;
+newInnovation->inputId = input;
+newInnovation->outputId = output;
+innovations->push_back(newInnovation);
+innovationNumber += 1;
+
+return newInnovation->innovationNumber;
 }
 
 std::vector<Genome*>* Population::getOrganisms(){
@@ -96,6 +97,19 @@ void Population::speciatePopulation(){
 	}
 }
 
+void Population::reducePopulation(){
+	// Remove organisms with low fitness
+
+}
+
+void Population::repopulate(){
+	// Use crossover to create new genomes until the population is back to size
+}
+
+void Population::setSpeciesReps(){
+	// Randomly select representative genomes for each species
+}
+
 void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 	// Initialize population
 	// For each generation:
@@ -108,6 +122,9 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 
 	initializePopulation();
 	for(int i = 0; i < POPULATION_MAX_GENERATION; i++){
+		for(int j = 0; j < innovations->size(); j++){
+			delete innovations->operator[][j];
+		}
 		innovations->clear();
 		for(int j = 0; j < speciesList->size(); j++){
 			speciesList->operator[][j]->members->clear();
@@ -116,6 +133,12 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 		for(int j = 0; j < organisms->size(); j++){
 			evaluateGenome(evaluationFunction, organisms->operator[][j]);
 		}
+		reducePopulation();
+		repopulate();
+		for(int j = 0; j < organisms->size(); j++){
+			Mutation::mutate(organisms->operator[][j], this);
+		}
+		setSpeciesReps();
 	}
 }
 
