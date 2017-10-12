@@ -108,6 +108,11 @@ void Population::repopulate(){
 
 void Population::setSpeciesReps(){
 	// Randomly select representative genomes for each species
+	Species* currentSpecies;
+	for(int i = 0; i < speciesList->size(); i++){
+		currentSpecies = speciesList->operator[](i);
+		currentSpecies->representative = currentSpecies->members->operator[](rand() % currentSpecies->members->size());
+	}
 }
 
 void Population::evaluatePopulation(void* evaluationFunction(Network* network)){

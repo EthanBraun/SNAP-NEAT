@@ -5,7 +5,7 @@ int main(int argc, char *argv[]){
 	pop->evaluatePopulation(fitnessFunction);	
 }
 
-double fitnessFunction(Network* currentNetwork){
+void* fitnessFunction(Network* currentNetwork){
 	// Write problem-specific fitness function here
 	// More fit networks should return a greater value than less fit networks
 }

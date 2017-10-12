@@ -6,7 +6,7 @@ Network::Network(Genome* genome){
 	outputLayerKeys = new std::vector<int>();
 	inputLayer = new std::map<int, Neuron*>();
 	hiddenLayer = new std::map<int, Neuron*>();
-	outputLayer = new std::map<int, Neuron *>();
+	outputLayer = new std::map<int, Neuron*>();
 
 	std::vector<int>* nodeKeys = genome->getNodeKeys();
 	std::map<int, NodeGene*>* nodeGenes = genome->getNodeGenes();
