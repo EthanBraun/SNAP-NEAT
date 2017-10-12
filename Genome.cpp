@@ -28,6 +28,10 @@ std::map<int, ConnectionGene*>* Genome::getConnectionGenes(){
 	return connectionGenes;
 }
 
+int Genome::getId(){
+	return id;
+}
+
 int Genome::getSpecies(){
 	return species;
 }
@@ -40,6 +44,10 @@ double Genome::getSharedFitness(){
 	return sharedFitness;
 }
 
+void Genome::setId(int idVal){
+	id = idVal;
+}
+
 void Genome::setSpecies(int speciesVal){
 	species = speciesVal;
 }
@@ -50,4 +58,8 @@ void Genome::setFitness(double fitnessVal){
 
 void Genome::setSharedFitness(double sharedFitnessVal){
 	sharedFitness = sharedFitnessVal;
+}
+
+bool Genome::operator==(const Genome& rhs){
+	return id == rhs.id;
 }

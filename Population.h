@@ -4,10 +4,14 @@
 #include "Network.h"
 #include "Mutation.h"
 #include <algorithm>
+#include <math.h>
 
 struct Species{
+	double averageFitness;
 	Genome* representative;
 	std::vector<Genome*>* members;
+	int spawnRate;
+	int cullRate;
 };
 
 struct Innovation{
@@ -20,8 +24,9 @@ struct Innovation{
 
 class Population{
 private:
-	int generation;
+	int genomeId;
 	int innovationNumber;
+	double speciesAverageFitnessSum;
     std::vector<Genome*>* organisms;
 	std::vector<Species*>* speciesList;
 	std::vector<Innovation*>* innovations;
@@ -29,13 +34,15 @@ private:
 public:
     Population();
 
+	int updateGenomeId();
 	int updateInnovations(MutationType, GeneType, int, int);
-	int getGeneration();
 	std::vector<Genome*>* getOrganisms();
 	std::vector<Species*>* getSpeciesList();
 	std::vector<Innovation*>* getInnovations();
 	void initializePopulation();
 	void speciatePopulation();
+	void calculateSpeciesAverageFitnesses();
+	void calculateSpeciesSizeChanges();
 	void reducePopulation();
 	void repopulate();
 	void setSpeciesReps();

@@ -22,6 +22,7 @@ struct ConnectionGene {
 
 class Genome {
 private:
+	int id;
 	std::vector<int>* hiddenNodeKeys; 
 	std::vector<int>* nodeKeys;
 	std::vector<int>* connectionKeys;
@@ -38,12 +39,15 @@ public:
 	std::vector<int>* getConnectionKeys();
 	std::map<int, NodeGene*>* getNodeGenes();
 	std::map<int, ConnectionGene*>* getConnectionGenes();
+	int getId();
 	int getSpecies();
 	double getFitness();
 	double getSharedFitness();
+	void setId(int);
 	void setSpecies(int);
 	void setFitness(double);
 	void setSharedFitness(double);
+	bool operator==(const Genome&);
 };
 
 #endif

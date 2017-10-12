@@ -7,8 +7,10 @@ Population::Population(){
 	innovations = new std::vector<Innovation*>();
 }
 
-int Population::getGeneration(){
-	return generation;
+int Population::updateGenomeId(){
+	int currentGenomeId = genomeId;
+	genomeId++;
+	return currentGenomeId;
 }
 
 int Population::updateInnovations(MutationType mType, GeneType gType, int input, int output){
@@ -22,8 +24,8 @@ int Population::updateInnovations(MutationType mType, GeneType gType, int input,
 	newInnovation->innovationNumber = innovationNumber;
 	newInnovation->mutationType = mType;
 	newInnovation->geneType = gType;
-newInnovation->inputId = input;
-newInnovation->outputId = output;
+	newInnovation->inputId = input;
+	newInnovation->outputId = output;
 innovations->push_back(newInnovation);
 innovationNumber += 1;
 
@@ -45,6 +47,7 @@ std::vector<Innovation*>* Population::getInnovations(){
 void Population::initializePopulation(){
 	for(int i = 0; i < POPULATION_SIZE; i++){
 		Genome* genome = new Genome();
+		genome->setId(updateGenomeId());
 		for(int j = 0; j < GENOME_NUM_INPUT_NODES; j++){
 			NodeGene* inputNode = new NodeGene();
 			inputNode->innovation = j;
@@ -65,6 +68,7 @@ void Population::initializePopulation(){
 			genome->getNodeKeys()->push_back(GENOME_NUM_OUTPUT_NODES + j);
 			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_OUTPUT_NODES + j, outputNode));
 		}
+		organisms->push_back(genome);
 	}
 	innovationNumber = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES;
 }
@@ -89,17 +93,45 @@ void Population::speciatePopulation(){
 		}
 		if(!compatibleSpeciesFound){
 			Species* newSpecies = new Species();
+			newSpecies->averageFitness = 0.0;
 			newSpecies->representative = organisms->operator[](i);
 			newSpecies->members = new std::vector<Genome*>();
 			newSpecies->members->push_back(newSpecies->representative);
+			newSpecies->spawnRate = 0;
+			newSpecies->cullRate = 0;
 			speciesList->push_back(newSpecies);
 		}
 	}
 }
 
-void Population::reducePopulation(){
-	// Remove organisms with low fitness
+void Population::calculateSpeciesAverageFitnesses(){
+	speciesAverageFitnessSum = 0.0;
+	for(int i = 0; i < speciesList->size(); i++){
+		speciesList->operator[](i)->averageFitness = 0.0;
+		for(int j = 0; j < speciesList->operator[](i)->members->size(); i++){
+			speciesList->operator[](i)->averageFitness += speciesList->operator[](i)->members->operator[](j)->getSharedFitness();
+		}
+		speciesAverageFitnessSum += speciesList->operator[](i)->averageFitness;
+	}
+}
 
+void Population::calculateSpeciesSizeChanges(){
+	Species* currentSpecies;
+	for(int i = 0; i < speciesList->size(); i++){
+		currentSpecies = speciesList->operator[](i);
+		currentSpecies->spawnRate = (int)round((currentSpecies->averageFitness / speciesAverageFitnessSum) * POPULATION_PURGE_COUNT);
+		currentSpecies->cullRate = (int)round((currentSpecies->members->size() / POPULATION_SIZE) * POPULATION_PURGE_COUNT);
+	}
+}
+
+void Population::reducePopulation(){
+	// For each species:
+	// Determine n organisms with lowest fitness (where n = cull rate of species)
+	// Remove n organisms from members and organisms
+	int index;
+	for(int i = 0; i < speciesList->size(); i++){
+		speciesList->operator[](i)->cullRate;
+	}
 }
 
 void Population::repopulate(){
@@ -138,6 +170,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 		for(int j = 0; j < organisms->size(); j++){
 			evaluateGenome(evaluationFunction, organisms->operator[](j));
 		}
+		calculateSpeciesAverageFitnesses();
 		reducePopulation();
 		repopulate();
 		for(int j = 0; j < organisms->size(); j++){
