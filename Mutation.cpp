@@ -47,7 +47,7 @@ void Mutation::addNode(Genome* genome, Population* population){
 	// Disable connection
 
 	int index = rand() % genome->getConnectionKeys()->size();
-	ConnectionGene* currentConnectionGene = genome->getConnectionGenes()->operator[][index];
+	ConnectionGene* currentConnectionGene = genome->getConnectionGenes()->operator[](index);
 
 	int nodeGeneInnovation = population->updateInnovations(MutationType::AddNode, GeneType::GeneTypeNode, currentConnectionGene->inputId, currentConnectionGene->outputId);
 	NodeGene* newNodeGene = new NodeGene();
@@ -82,12 +82,12 @@ void Mutation::addConnection(Genome* genome, Population* population){
 	// Add new connection between them
 	
 	int inputKey = rand() % genome->getNodeKeys()->size();
-	NodeGene* inputNodeGene = genome->getNodeGenes()->operator[][inputKey];
+	NodeGene* inputNodeGene = genome->getNodeGenes()->operator[](inputKey);
 	
 	std::vector<int>* currentOutputKeys = new std::vector<int>();
 	for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
-		if(genome->getConnectionGenes()->operator[][genome->getConnectionKeys()->operator[][i]]->inputId == inputNodeGene->innovation){
-			currentOutputKeys->push_back(genome->getConnectionGenes()->operator[][genome->getConnectionKeys()->operator[][i]]->outputId);
+		if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->inputId == inputNodeGene->innovation){
+			currentOutputKeys->push_back(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->outputId);
 		}
 	}
 
@@ -96,9 +96,9 @@ void Mutation::addConnection(Genome* genome, Population* population){
 	//	TODO: Fix infinite loop if no outputs are available
 	do{
 		outputKey = rand() % genome->getNodeKeys()->size();
-	} while((genome->getNodeGenes()->operator[][outputKey]->type != NodeType::Input) && (std::find(currentOutputKeys->begin(), currentOutputKeys->end(), outputKey) != currentOutputKeys->end()));
+	} while((genome->getNodeGenes()->operator[](outputKey)->type != NodeType::Input) && (std::find(currentOutputKeys->begin(), currentOutputKeys->end(), outputKey) != currentOutputKeys->end()));
 
-	outputNodeGene = genome->getNodeGenes()->operator[][outputKey];
+	outputNodeGene = genome->getNodeGenes()->operator[](outputKey);
 
 	ConnectionGene* newConnectionGene = new ConnectionGene();
 	newConnectionGene->innovation = population->updateInnovations(MutationType::AddConnection, GeneType::GeneTypeConnection, inputKey, outputKey);
@@ -115,7 +115,7 @@ void Mutation::perturbBias(Genome* genome){
 	// Perturb bias
 	int index = rand() % genome->getNodeKeys()->size();
 	double perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
-	genome->getNodeGenes()->operator[][index]->bias += (NODE_GENE_MAX_BIAS_PERTURBATION * perturbationPercent);
+	genome->getNodeGenes()->operator[](index)->bias += (NODE_GENE_MAX_BIAS_PERTURBATION * perturbationPercent);
 }
 
 void Mutation::perturbWeight(Genome* genome){
@@ -123,21 +123,21 @@ void Mutation::perturbWeight(Genome* genome){
 	// Perturb weight
 	int index = rand() % genome->getConnectionKeys()->size();
 	double perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
-	genome->getConnectionGenes()->operator[][index]->weight += (CONNECTION_GENE_MAX_WEIGHT_PERTURBATION * perturbationPercent);
+	genome->getConnectionGenes()->operator[](index)->weight += (CONNECTION_GENE_MAX_WEIGHT_PERTURBATION * perturbationPercent);
 }
 
 void Mutation::toggleNode(Genome* genome){
 	// Get random hidden node
 	// Toggle enabled state
 	int index = rand() % genome->getHiddenNodeKeys()->size();
-	bool state = genome->getNodeGenes()->operator[][genome->getHiddenNodeKeys()->operator[][index]].enabled;
-	genome->getNodeGenes()->operator[][genome->getHiddenNodeKeys()->operator[][index]].enabled = !state;
+	NodeGene* node = genome->getNodeGenes()->operator[](genome->getHiddenNodeKeys()->operator[](index));
+	node->enabled = !node->enabled;
 }
 
 void Mutation::toggleConnection(Genome* genome){
 	// Get random connection
 	// Toggle enabled state
 	int index = rand() % genome->getConnectionKeys()->size();
-	bool state = genome->getConnectionGenes()->operator[][genome->getConnectionKeys()->operator[][index]]->enabled;
-	genome->getConnectionGenes()->operator[][genome->getConnectionKeys()->operator[][index]]->enabled = !state; 
+	bool state = genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](index))->enabled;
+	genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](index))->enabled = !state; 
 }

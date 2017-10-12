@@ -13,8 +13,8 @@ int Population::getGeneration(){
 
 int Population::updateInnovations(MutationType mType, GeneType gType, int input, int output){
 	for(int i = 0; i < innovations->size(); i++){
-		if(_innovationEqual(innovations->operator[][i], mType, gType, input, output)){
-			return innovations->operator[][i]->innovationNumber;
+		if(_innovationEqual(innovations->operator[](i), mType, gType, input, output)){
+			return innovations->operator[](i)->innovationNumber;
 		}
 	}
 
@@ -80,16 +80,16 @@ void Population::speciatePopulation(){
 	for(int i = 0; i < organisms->size(); i++){
 		compatibleSpeciesFound = false;
 		for(int j = 0; j < speciesList->size(); j++){
-			if(calculateCompatibilityDistance(organisms->operator[][i], speciesList->operator[][j]->representative) < GENOME_COMPATIBILITY_THRESHOLD){
-				speciesList->operator[][j]->members->push_back(organisms->operator[][i]);
-				organisms->operator[][i]->setSpecies(j);
+			if(calculateCompatibilityDistance(organisms->operator[](i), speciesList->operator[](j)->representative) < GENOME_COMPATIBILITY_THRESHOLD){
+				speciesList->operator[](j)->members->push_back(organisms->operator[](i));
+				organisms->operator[](i)->setSpecies(j);
 				compatibleSpeciesFound = true;
 				break;
 			}
 		}
 		if(!compatibleSpeciesFound){
 			Species* newSpecies = new Species();
-			newSpecies->representative = organisms->operator[][i];
+			newSpecies->representative = organisms->operator[](i);
 			newSpecies->members = new std::vector<Genome*>();
 			newSpecies->members->push_back(newSpecies->representative);
 			speciesList->push_back(newSpecies);
@@ -123,20 +123,20 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 	initializePopulation();
 	for(int i = 0; i < POPULATION_MAX_GENERATION; i++){
 		for(int j = 0; j < innovations->size(); j++){
-			delete innovations->operator[][j];
+			delete innovations->operator[](j);
 		}
 		innovations->clear();
 		for(int j = 0; j < speciesList->size(); j++){
-			speciesList->operator[][j]->members->clear();
+			speciesList->operator[](j)->members->clear();
 		}
 		speciatePopulation();
 		for(int j = 0; j < organisms->size(); j++){
-			evaluateGenome(evaluationFunction, organisms->operator[][j]);
+			evaluateGenome(evaluationFunction, organisms->operator[](j));
 		}
 		reducePopulation();
 		repopulate();
 		for(int j = 0; j < organisms->size(); j++){
-			Mutation::mutate(organisms->operator[][j], this);
+			Mutation::mutate(organisms->operator[](j), this);
 		}
 		setSpeciesReps();
 	}
@@ -145,7 +145,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 void Population::evaluateGenome(void* evaluationFunction(Network* network), Genome* currentGenome){
 	Network* phenotype = new Network(currentGenome);
 	currentGenome->setFitness(*(double*)(evaluationFunction(phenotype)));
-	currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[][currentGenome->getSpecies()]->members->size());
+	currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[](currentGenome->getSpecies())->members->size());
 	delete phenotype;
 }
 
@@ -167,22 +167,22 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	double matchingConnectionGeneWeightDifferenceSum = 0.0;
 	int maxTotalGenomeSize = std::max(a->getNodeKeys()->size() + a->getConnectionKeys()->size(), b->getNodeKeys()->size() + b->getConnectionKeys()->size());
 
-	if(a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1] < b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1]){
-		maxPossibleMatchingNodeGeneInnovation = a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1];
-		maxNodeGeneInnovation = b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1];
+	if(a->getNodeKeys()->operator[](a->getNodeKeys()->size() - 1) < b->getNodeKeys()->operator[](b->getNodeKeys()->size() - 1)){
+		maxPossibleMatchingNodeGeneInnovation = a->getNodeKeys()->operator[](a->getNodeKeys()->size() - 1);
+		maxNodeGeneInnovation = b->getNodeKeys()->operator[](b->getNodeKeys()->size() - 1);
 	}
 	else{
-		maxPossibleMatchingNodeGeneInnovation = b->getNodeKeys()->operator[][b->getNodeKeys()->size() - 1];
-		maxNodeGeneInnovation = a->getNodeKeys()->operator[][a->getNodeKeys()->size() - 1];
+		maxPossibleMatchingNodeGeneInnovation = b->getNodeKeys()->operator[](b->getNodeKeys()->size() - 1);
+		maxNodeGeneInnovation = a->getNodeKeys()->operator[](a->getNodeKeys()->size() - 1);
 	}
 
-	if(a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1] < b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1]){
-		maxPossibleMatchingConnectionGeneInnovation = a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1];
-		maxConnectionGeneInnovation = b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1];
+	if(a->getConnectionKeys()->operator[](a->getConnectionKeys()->size() - 1) < b->getConnectionKeys()->operator[](b->getConnectionKeys()->size() - 1)){
+		maxPossibleMatchingConnectionGeneInnovation = a->getConnectionKeys()->operator[](a->getConnectionKeys()->size() - 1);
+		maxConnectionGeneInnovation = b->getConnectionKeys()->operator[](b->getConnectionKeys()->size() - 1);
 	}
 	else{
-		maxPossibleMatchingConnectionGeneInnovation = b->getConnectionKeys()->operator[][b->getConnectionKeys()->size() - 1];
-		maxConnectionGeneInnovation = a->getConnectionKeys()->operator[][a->getConnectionKeys()->size() - 1];
+		maxPossibleMatchingConnectionGeneInnovation = b->getConnectionKeys()->operator[](b->getConnectionKeys()->size() - 1);
+		maxConnectionGeneInnovation = a->getConnectionKeys()->operator[](a->getConnectionKeys()->size() - 1);
 	}
 
 	bool aContainsInnovation = false;
@@ -211,7 +211,7 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 		}
 		else if(aContainsInnovation && bContainsInnovation){
 			matchingConnectionGeneCount++;
-			matchingConnectionGeneWeightDifferenceSum += std::abs(a->getConnectionGenes()->operator[][i]->weight - b->getConnectionGenes()->operator[][i]->weight);
+			matchingConnectionGeneWeightDifferenceSum += std::abs(a->getConnectionGenes()->operator[](i)->weight - b->getConnectionGenes()->operator[](i)->weight);
 		}
 	}
 

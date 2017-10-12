@@ -13,7 +13,7 @@ Network::Network(Genome* genome){
 	NodeGene* currentNodeGene;
 
 	for(int i = 0; i < nodeKeys->size(); i++){
-		currentNodeGene = nodeGenes->operator[][nodeKeys->operator[][i]];
+		currentNodeGene = nodeGenes->operator[](nodeKeys->operator[](i));
 		switch(currentNodeGene->type){
 		case(NodeType::Input):
 			inputLayerKeys->push_back(currentNodeGene->innovation);
@@ -38,28 +38,28 @@ Network::Network(Genome* genome){
 	Connection* connection = NULL;
 
 	for(int i = 0; i < connectionKeys->size(); i++){
-		currentConnectionGene = connectionGenes->operator[][connectionKeys->operator[][i]];
+		currentConnectionGene = connectionGenes->operator[](connectionKeys->operator[](i));
 		inputNode = NULL;
 		outputNode = NULL;
 
 		if(inputLayer->count(currentConnectionGene->inputId) != 0){
-			inputNode = inputLayer->operator[][currentConnectionGene->inputId];
+			inputNode = inputLayer->operator[](currentConnectionGene->inputId);
 		}
 		else if(hiddenLayer->count(currentConnectionGene->inputId) != 0){
-			inputNode = hiddenLayer->operator[][currentConnectionGene->inputId];
+			inputNode = hiddenLayer->operator[](currentConnectionGene->inputId);
 		}
 		else{
-			inputNode = outputLayer->operator[][currentConnectionGene->inputId];
+			inputNode = outputLayer->operator[](currentConnectionGene->inputId);
 		}
 
 		if(inputLayer->count(currentConnectionGene->outputId) != 0){
-			outputNode = inputLayer->operator[][currentConnectionGene->outputId];
+			outputNode = inputLayer->operator[](currentConnectionGene->outputId);
 		}
 		else if(hiddenLayer->count(currentConnectionGene->outputId) != 0){
-			outputNode = hiddenLayer->operator[][currentConnectionGene->outputId];
+			outputNode = hiddenLayer->operator[](currentConnectionGene->outputId);
 		}
 		else{
-			outputNode = outputLayer->operator[][currentConnectionGene->outputId];
+			outputNode = outputLayer->operator[](currentConnectionGene->outputId);
 		}
 
 		connection = new Connection();
@@ -76,19 +76,19 @@ Network::Network(Genome* genome){
 
 Network::~Network(){
 	for(int i = 0; i < inputLayerKeys->size(); i++){
-		delete inputLayer->operator[][inputLayerKeys->operator[][i]];
+		delete inputLayer->operator[](inputLayerKeys->operator[](i));
 	}
 	delete inputLayer;
 	delete inputLayerKeys;
 
 	for(int i = 0; i < hiddenLayerKeys->size(); i++){
-		delete hiddenLayer->operator[][hiddenLayerKeys->operator[][i]];
+		delete hiddenLayer->operator[](hiddenLayerKeys->operator[](i));
 	}
 	delete hiddenLayer;
 	delete hiddenLayerKeys;
 
 	for(int i = 0; i < outputLayerKeys->size(); i++){
-		delete outputLayer->operator[][outputLayerKeys->operator[][i]];
+		delete outputLayer->operator[](outputLayerKeys->operator[](i));
 	}
 	delete outputLayer;
 	delete outputLayerKeys;

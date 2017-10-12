@@ -10,12 +10,12 @@ Neuron::Neuron(int innovationNumber, double biasVal){
 
 Neuron::~Neuron(){
 	for(int i = 0; i < inputs->size(); i++){
-		delete inputs->operator[][i];
+		delete inputs->operator[](i);
 	}
 	delete inputs;
 
 	for(int i = 0; i < outputs->size(); i++){
-		delete outputs->operator[][i];
+		delete outputs->operator[](i);
 	}
 	delete outputs;
 }
@@ -40,7 +40,7 @@ void Neuron::activate(){
 	double newActivation = 0.0;
 
 	for(int i = 0; i < inputs->size(); i++){
-		newActivation += (inputs->operator[][i]->from->getActivation()) * (inputs->operator[][i]->weight);
+		newActivation += (inputs->operator[](i)->from->getActivation()) * (inputs->operator[](i)->weight);
 	}
 	newActivation += bias;
 	activation = sigmoid(newActivation);
