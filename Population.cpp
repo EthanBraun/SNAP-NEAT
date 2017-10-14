@@ -84,12 +84,12 @@ void Population::speciatePopulation(){
 	for(int i = 0; i < organisms->size(); i++){
 		compatibleSpeciesFound = false;
 		for(int j = 0; j < speciesList->size(); j++){
-			if(calculateCompatibilityDistance(organisms->operator[](i), speciesList->operator[](j)->representative) < GENOME_COMPATIBILITY_THRESHOLD){
-				speciesList->operator[](j)->members->push_back(organisms->operator[](i));
-				organisms->operator[](i)->setSpecies(j);
-				compatibleSpeciesFound = true;
-				break;
-			}
+if(calculateCompatibilityDistance(organisms->operator[](i), speciesList->operator[](j)->representative) < GENOME_COMPATIBILITY_THRESHOLD){
+	speciesList->operator[](j)->members->push_back(organisms->operator[](i));
+	organisms->operator[](i)->setSpecies(j);
+	compatibleSpeciesFound = true;
+	break;
+}
 		}
 		if(!compatibleSpeciesFound){
 			Species* newSpecies = new Species();
@@ -135,26 +135,26 @@ void Population::reducePopulation(){
 
 	for(int i = 0; i < speciesList->size(); i++){
 		cullList->clear();
-		for(int j = 0; j < speciesList->operator[](i)->members->size(); j++){ 
+		for(int j = 0; j < speciesList->operator[](i)->members->size(); j++){
 			if(cullList->size() < speciesList->operator[](i)->cullRate){
 				// Add current organism to cullList
 				for(int k = 0; k < cullList->size(); k++){
 					organismPlaced = false;
-					if(speciesList->operator[](i)->operator[](j)->getFitness() < cullList->operator[](k)->getFitness()){
-						cullList->insert(cullList->begin() + k, speciesList->operator[](i)->operator[](j));
+					if(speciesList->operator[](i)->members->operator[](j)->getFitness() < cullList->operator[](k)->getFitness()){
+						cullList->insert(cullList->begin() + k, speciesList->operator[](i)->members->operator[](j));
 						organismPlaced = true;
 						break;
 					}
 				}
 				if(!organismPlaced){
-					cullList->push_back(speciesList->operator[](i)->operator[](j));
+					cullList->push_back(speciesList->operator[](i)->members->operator[](j));
 				}
 			}
-			else if(speciesList->operator[](i)->operator[](j)->getFitness() < cullList->operator[](cullList->size())->getFitness()){
+			else if(speciesList->operator[](i)->members->operator[](j)->getFitness() < cullList->operator[](cullList->size())->getFitness()){
 				// If current organism has lower fitness than most fit member in cullList
 				for(int k = 0; k < cullList->size(); k++){
-					if(speciesList->operator[](i)->operator[](j)->getFitness() < cullList->operator[](k)->getFitness()){
-						cullList->insert(cullList->begin() + k, speciesList->operator[](i)->operator[](j));
+					if(speciesList->operator[](i)->members->operator[](j)->getFitness() < cullList->operator[](k)->getFitness()){
+						cullList->insert(cullList->begin() + k, speciesList->operator[](i)->members->operator[](j));
 						cullList->erase(cullList->end());
 						break;
 					}
@@ -184,6 +184,40 @@ void Population::reducePopulation(){
 
 void Population::repopulate(){
 	// Use crossover to create new genomes until the population is back to size
+	Genome* newGenome;
+	Genome* parentA;
+	Genome* parentB;
+	int randA;
+	int randB;
+	for(int i = 0; i < speciesList->size(); i++){
+		for(int j = 0; j < speciesList->operator[](i)->spawnRate; j++){
+			if(speciesList->operator[](i)->members->size() == 0){
+				randA = rand() % organisms->size();
+				parentA = organisms->operator[](randA);
+				do{
+					randB = rand() % organisms->size();
+				}while(randB == randA);
+				parentB = organisms->operator[](randB);
+			}
+			else if(speciesList->operator[](i)->members->size() == 1){
+				randA = rand() % organisms->size();
+				parentA = organisms->operator[](randA);
+				parentB = speciesList->operator[](i)->members->operator[](0);
+			}
+			else{
+				randA = rand() % speciesList->operator[](i)->members->size();
+				parentA = speciesList->operator[](i)->members->operator[](randA);
+				do{
+					randB = rand() % speciesList->operator[](i)->members->size();
+				}while(randB == randA);
+				parentB = speciesList->operator[](i)->members->operator[](randB);
+			}
+			newGenome = new Genome(parentA, parentB);
+			speciesList->operator[](i)->members->push_back(newGenome);
+			organisms->push_back(newGenome);
+			newGenome = NULL;
+		}
+	}
 }
 
 void Population::setSpeciesReps(){

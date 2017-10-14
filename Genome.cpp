@@ -9,6 +9,10 @@ Genome::Genome(){
 	species = -1;
 }
 
+Genome::Genome(Genome* parentA, Genome* parentB){
+
+}
+
 Genome::~Genome(){
 	for(int i = 0; i < nodeKeys->size(); i++){
 		delete nodeGenes->operator[](nodeKeys->operator[](i));
