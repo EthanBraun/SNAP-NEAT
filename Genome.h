@@ -1,6 +1,7 @@
 #ifndef GENOME_H
 #define GENOME_H
 
+#include "Population.h"
 #include "NodeType.h"
 #include <vector>
 #include <map>

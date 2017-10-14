@@ -50,6 +50,12 @@ public:
 	void evaluateGenome(void* evaluationFunction(Network* network), Genome*);
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
 	double calculateCompatibilityDistance(Genome*, Genome*);
+	static void copyNodeGeneBernoulli(Genome*, NodeGene*, NodeGene*, int);
+	static void copyNodeGeneBernoulli(Genome*, NodeGene*, int);
+	static void copyNodeGene(Genome*, NodeGene*, int);
+	static void copyConnectionGeneBernoulli(Genome*, ConnectionGene*, ConnectionGene*, int);
+	static void copyConnectionGeneBernoulli(Genome*, ConnectionGene*, int);
+	static void copyConnectionGene(Genome*, ConnectionGene*, int);
 };
 
 #endif
