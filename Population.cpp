@@ -26,10 +26,10 @@ int Population::updateInnovations(MutationType mType, GeneType gType, int input,
 	newInnovation->geneType = gType;
 	newInnovation->inputId = input;
 	newInnovation->outputId = output;
-innovations->push_back(newInnovation);
-innovationNumber += 1;
+	innovations->push_back(newInnovation);
+	innovationNumber += 1;
 
-return newInnovation->innovationNumber;
+	return newInnovation->innovationNumber;
 }
 
 std::vector<Genome*>* Population::getOrganisms(){
@@ -124,14 +124,62 @@ void Population::calculateSpeciesSizeChanges(){
 	}
 }
 
+// Could be cleaned up
 void Population::reducePopulation(){
 	// For each species:
 	// Determine n organisms with lowest fitness (where n = cull rate of species)
 	// Remove n organisms from members and organisms
 	int index;
+	bool organismPlaced;
+	std::vector<Genome*>* cullList = new std::vector<Genome*>();
+
 	for(int i = 0; i < speciesList->size(); i++){
-		speciesList->operator[](i)->cullRate;
+		cullList->clear();
+		for(int j = 0; j < speciesList->operator[](i)->members->size(); j++){ 
+			if(cullList->size() < speciesList->operator[](i)->cullRate){
+				// Add current organism to cullList
+				for(int k = 0; k < cullList->size(); k++){
+					organismPlaced = false;
+					if(speciesList->operator[](i)->operator[](j)->getFitness() < cullList->operator[](k)->getFitness()){
+						cullList->insert(cullList->begin() + k, speciesList->operator[](i)->operator[](j));
+						organismPlaced = true;
+						break;
+					}
+				}
+				if(!organismPlaced){
+					cullList->push_back(speciesList->operator[](i)->operator[](j));
+				}
+			}
+			else if(speciesList->operator[](i)->operator[](j)->getFitness() < cullList->operator[](cullList->size())->getFitness()){
+				// If current organism has lower fitness than most fit member in cullList
+				for(int k = 0; k < cullList->size(); k++){
+					if(speciesList->operator[](i)->operator[](j)->getFitness() < cullList->operator[](k)->getFitness()){
+						cullList->insert(cullList->begin() + k, speciesList->operator[](i)->operator[](j));
+						cullList->erase(cullList->end());
+						break;
+					}
+				}
+			}
+		}
+		for(int j = 0; j < cullList->size(); j++){
+			for(int k = 0; k < organisms->size(); k++){
+				if(organisms->operator[](k) == cullList->operator[](j)){
+					organisms->erase(organisms->begin() + k);
+					break;
+				}
+			}
+			for(int k = 0; k < speciesList->operator[](i)->members->size(); k++){
+				if(speciesList->operator[](i)->members->operator[](k) == cullList->operator[](k)){
+					speciesList->operator[](i)->members->erase(speciesList->operator[](i)->members->begin() + k);
+					break;
+
+				}
+			}
+			delete cullList->operator[](j);
+			cullList->operator[](j) = NULL;
+		}
 	}
+	delete cullList;
 }
 
 void Population::repopulate(){

@@ -33,6 +33,7 @@ private:
 	double sharedFitness;
 public:
 	Genome();
+	~Genome();
 
 	std::vector<int>* getHiddenNodeKeys();
 	std::vector<int>* getNodeKeys();
