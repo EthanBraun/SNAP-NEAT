@@ -2,9 +2,13 @@
 #define POPULATION_H
 
 #include "Network.h"
-#include "Mutation.h"
 #include <algorithm>
 #include <math.h>
+#include <cstdio>
+#include <cstdlib>
+
+enum MutationType { AddNode, AddConnection, PerturbBias, PerturbWeight, ToggleNode, ToggleConnection, End = ToggleConnection };
+enum GeneType { GeneTypeConnection, GeneTypeNode };
 
 struct Species{
 	double averageFitness;
@@ -46,8 +50,9 @@ public:
 	void reducePopulation();
 	void repopulate();
 	void setSpeciesReps();
-	void evaluatePopulation(void* evaluationFunction(Network* network));
-	void evaluateGenome(void* evaluationFunction(Network* network), Genome*);
+	void evaluatePopulation(void* evaluationFunction(Network* network, double* fitness));
+	void evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome*);
+	void printPopulationStats();
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
 	double calculateCompatibilityDistance(Genome*, Genome*);
 	static void copyNodeGeneBernoulli(Genome*, NodeGene*, NodeGene*, int);

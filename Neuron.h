@@ -5,11 +5,7 @@
 #include "Activation.h"
 #include <vector>
 
-struct Connection {
-	Neuron* from;
-	Neuron* to;
-	double weight;
-};
+struct Connection;
 
 class Neuron {
 private:
@@ -30,6 +26,12 @@ public:
 	void addOutput(Connection*);
 	void activate();
 	void activateDirect(double);
+};
+
+struct Connection {
+	Neuron* from;
+	Neuron* to;
+	double weight;
 };
 
 #endif

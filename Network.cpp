@@ -1,4 +1,5 @@
 #include "Network.h"
+#include <cstdlib>
 
 Network::Network(Genome* genome){
 	inputLayerKeys = new std::vector<int>();
@@ -7,6 +8,7 @@ Network::Network(Genome* genome){
 	inputLayer = new std::map<int, Neuron*>();
 	hiddenLayer = new std::map<int, Neuron*>();
 	outputLayer = new std::map<int, Neuron*>();
+	connections = new std::vector<Connection*>();
 
 	std::vector<int>* nodeKeys = genome->getNodeKeys();
 	std::map<int, NodeGene*>* nodeGenes = genome->getNodeGenes();
@@ -15,15 +17,15 @@ Network::Network(Genome* genome){
 	for(int i = 0; i < nodeKeys->size(); i++){
 		currentNodeGene = nodeGenes->operator[](nodeKeys->operator[](i));
 		switch(currentNodeGene->type){
-		case(NodeType::Input):
+		case(Input):
 			inputLayerKeys->push_back(currentNodeGene->innovation);
 			inputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, currentNodeGene->bias)));
 			break;
-		case(NodeType::Hidden):
+		case(Hidden):
 			hiddenLayerKeys->push_back(currentNodeGene->innovation);
 			hiddenLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, currentNodeGene->bias)));
 			break;
-		case(NodeType::Output):
+		case(Output):
 			outputLayerKeys->push_back(currentNodeGene->innovation);
 			outputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, currentNodeGene->bias)));
 			break;
@@ -35,12 +37,13 @@ Network::Network(Genome* genome){
 	ConnectionGene* currentConnectionGene;
 	Neuron* inputNode;
 	Neuron* outputNode;
-	Connection* connection = NULL;
+	Connection* connection;
 
 	for(int i = 0; i < connectionKeys->size(); i++){
 		currentConnectionGene = connectionGenes->operator[](connectionKeys->operator[](i));
 		inputNode = NULL;
 		outputNode = NULL;
+		connection = NULL;
 
 		if(inputLayer->count(currentConnectionGene->inputId) != 0){
 			inputNode = inputLayer->operator[](currentConnectionGene->inputId);
@@ -48,8 +51,12 @@ Network::Network(Genome* genome){
 		else if(hiddenLayer->count(currentConnectionGene->inputId) != 0){
 			inputNode = hiddenLayer->operator[](currentConnectionGene->inputId);
 		}
-		else{
+		else if(outputLayer->count(currentConnectionGene->inputId) != 0){
 			inputNode = outputLayer->operator[](currentConnectionGene->inputId);
+		}
+		else{
+			// vestigial connection gene
+			break;
 		}
 
 		if(inputLayer->count(currentConnectionGene->outputId) != 0){
@@ -58,8 +65,12 @@ Network::Network(Genome* genome){
 		else if(hiddenLayer->count(currentConnectionGene->outputId) != 0){
 			outputNode = hiddenLayer->operator[](currentConnectionGene->outputId);
 		}
-		else{
+		else if(outputLayer->count(currentConnectionGene->outputId) != 0){
 			outputNode = outputLayer->operator[](currentConnectionGene->outputId);
+		}
+		else{
+			// vestigial connection gene
+			break;
 		}
 
 		connection = new Connection();
@@ -69,9 +80,10 @@ Network::Network(Genome* genome){
 
 		inputNode->addOutput(connection);
 		outputNode->addInput(connection);
+		connections->push_back(connection);
 	}
 
-	// TODO: Establish activation order of neurons	
+	// TODO: Establish activation order of neurons (currently just using gene order)
 }
 
 Network::~Network(){
@@ -92,4 +104,45 @@ Network::~Network(){
 	}
 	delete outputLayer;
 	delete outputLayerKeys;
+
+	for(int i = 0; i < connections->size(); i++){
+		delete connections->operator[](i);
+	}
+	delete connections;
+}
+
+std::vector<int>* Network::getInputLayerKeys(){
+	return inputLayerKeys;
+}
+
+std::vector<int>* Network::getHiddenLayerKeys(){
+	return hiddenLayerKeys;
+}
+
+std::vector<int>* Network::getOutputLayerKeys(){
+	return outputLayerKeys;
+}
+
+std::map<int, Neuron*>* Network::getInputLayer(){
+	return inputLayer;
+}
+
+std::map<int, Neuron*>* Network::getHiddenLayer(){
+	return hiddenLayer;
+}
+
+std::map<int, Neuron*>* Network::getOutputLayer(){
+	return outputLayer;
+}
+
+void Network::activate(std::vector<double>* inputs){
+	for(int i = 0; i < inputLayerKeys->size(); i++){
+		inputLayer->operator[](inputLayerKeys->operator[](i))->activateDirect(inputs->operator[](i));
+	}
+	for(int i = 0; i < hiddenLayerKeys->size(); i++){
+		hiddenLayer->operator[](hiddenLayerKeys->operator[](i))->activate();
+	}
+	for(int i = 0; i < outputLayerKeys->size(); i++){
+		outputLayer->operator[](outputLayerKeys->operator[](i))->activate();
+	}
 }

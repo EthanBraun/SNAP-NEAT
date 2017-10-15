@@ -1,4 +1,5 @@
 #include "Genome.h"
+#include "Population.h"
 
 Genome::Genome(){
 	hiddenNodeKeys = new std::vector<int>();
@@ -32,8 +33,8 @@ Genome::Genome(Genome* parentA, Genome* parentB){
 		if((currentNodeKeyIndexA > maxNodeKeyIndexA) && (currentNodeKeyIndexB > maxNodeKeyIndexB)){
 			break;
 		}
-		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? parentA->getNodeKeys()->operator[](currentNodeKeyIndexA) : 100000;
-		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? parentB->getNodeKeys()->operator[](currentNodeKeyIndexB) : 100000;
+		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? parentA->getNodeKeys()->operator[](currentNodeKeyIndexA) : 1000000;
+		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? parentB->getNodeKeys()->operator[](currentNodeKeyIndexB) : 1000000;
 
 		if(currentNodeKeyA == currentNodeKeyB){
 			Population::copyNodeGeneBernoulli(this, parentA->getNodeGenes()->operator[](currentNodeKeyA), parentB->getNodeGenes()->operator[](currentNodeKeyB), currentNodeKeyA);
@@ -107,6 +108,7 @@ Genome::~Genome(){
 	for(int i = 0; i < connectionKeys->size(); i++){
 		delete connectionGenes->operator[](connectionKeys->operator[](i));
 	}
+
 	delete hiddenNodeKeys;
 	delete nodeKeys;
 	delete connectionKeys;
@@ -164,6 +166,27 @@ void Genome::setFitness(double fitnessVal){
 
 void Genome::setSharedFitness(double sharedFitnessVal){
 	sharedFitness = sharedFitnessVal;
+}
+
+void Genome::printGenotype(){
+	printf("Node Genes -- (%d):\n", (int)nodeKeys->size());
+	for(int i = 0; i < nodeKeys->size(); i++){
+		printf("\tnodeGenes[%d]->innovation: %d\n", nodeKeys->operator[](i), nodeGenes->operator[](nodeKeys->operator[](i))->innovation);
+		printf("\tnodeGenes[%d]->bias: %f\n", nodeKeys->operator[](i), nodeGenes->operator[](nodeKeys->operator[](i))->bias);
+		printf("\tnodeGenes[%d]->type: %d\n", nodeKeys->operator[](i), nodeGenes->operator[](nodeKeys->operator[](i))->type);
+		printf("\tnodeGenes[%d]->enabled: %d\n\n", nodeKeys->operator[](i), nodeGenes->operator[](nodeKeys->operator[](i))->enabled);
+	}
+
+	printf("Connection Genes -- (%d):\n", (int)connectionKeys->size());
+	for(int i = 0; i < connectionKeys->size(); i++){
+		printf("\tconnectionGenes[%d]->innovation: %d\n", connectionKeys->operator[](i), connectionGenes->operator[](connectionKeys->operator[](i))->innovation);
+		printf("\tconnectionGenes[%d]->inputId: %d\n", connectionKeys->operator[](i), connectionGenes->operator[](connectionKeys->operator[](i))->inputId);
+		printf("\tconnectionGenes[%d]->outputId: %d\n", connectionKeys->operator[](i), connectionGenes->operator[](connectionKeys->operator[](i))->outputId);
+		printf("\tconnectionGenes[%d]->weight: %f\n", connectionKeys->operator[](i), connectionGenes->operator[](connectionKeys->operator[](i))->weight);
+		printf("\tconnectionGenes[%d]->enabled: %d\n\n", connectionKeys->operator[](i), connectionGenes->operator[](connectionKeys->operator[](i))->enabled);
+	}
+	fflush(stdout);
+	exit(420);
 }
 
 bool Genome::operator==(const Genome& rhs){

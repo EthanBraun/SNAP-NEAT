@@ -1,4 +1,5 @@
 #include "Neuron.h"
+#include <cstdlib>
 
 Neuron::Neuron(int innovationNumber, double biasVal){
 	innovation = innovationNumber;
@@ -9,14 +10,7 @@ Neuron::Neuron(int innovationNumber, double biasVal){
 }
 
 Neuron::~Neuron(){
-	for(int i = 0; i < inputs->size(); i++){
-		delete inputs->operator[](i);
-	}
 	delete inputs;
-
-	for(int i = 0; i < outputs->size(); i++){
-		delete outputs->operator[](i);
-	}
 	delete outputs;
 }
 
@@ -28,12 +22,12 @@ double Neuron::getActivation(){
 	return activation;
 }
 
-void Neuron::addInput(Connection* in){
-	inputs->push_back(in);
+void Neuron::addInput(Connection* inConnection){
+	inputs->push_back(inConnection);
 }
 
-void Neuron::addOutput(Connection* out){
-	outputs->push_back(out);
+void Neuron::addOutput(Connection* outConnection){
+	outputs->push_back(outConnection);
 }
 
 void Neuron::activate(){

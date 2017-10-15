@@ -1,4 +1,5 @@
 #include "Population.h"
+#include "Mutation.h"
 
 Population::Population(){
 	innovationNumber = 0;
@@ -28,6 +29,7 @@ int Population::updateInnovations(MutationType mType, GeneType gType, int input,
 	newInnovation->outputId = output;
 	innovations->push_back(newInnovation);
 	innovationNumber += 1;
+	//printf("\t\t\tINNOVATION NUMBER IS %d\n", innovationNumber);
 
 	return newInnovation->innovationNumber;
 }
@@ -52,7 +54,7 @@ void Population::initializePopulation(){
 			NodeGene* inputNode = new NodeGene();
 			inputNode->innovation = j;
 			inputNode->bias = 0.0;
-			inputNode->type = NodeType::Input;
+			inputNode->type = Input;
 			inputNode->enabled = true;
 
 			genome->getNodeKeys()->push_back(j);
@@ -60,13 +62,13 @@ void Population::initializePopulation(){
 		}
 		for(int j = 0; j < GENOME_NUM_OUTPUT_NODES; j++){
 			NodeGene* outputNode = new NodeGene();
-			outputNode->innovation = GENOME_NUM_OUTPUT_NODES + j;
+			outputNode->innovation = GENOME_NUM_INPUT_NODES + j;
 			outputNode->bias = 0.0;
-			outputNode->type = NodeType::Output;
+			outputNode->type = Output;
 			outputNode->enabled = true;
 
-			genome->getNodeKeys()->push_back(GENOME_NUM_OUTPUT_NODES + j);
-			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_OUTPUT_NODES + j, outputNode));
+			genome->getNodeKeys()->push_back(GENOME_NUM_INPUT_NODES + j);
+			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES + j, outputNode));
 		}
 		organisms->push_back(genome);
 	}
@@ -100,6 +102,7 @@ void Population::speciatePopulation(){
 			newSpecies->spawnRate = 0;
 			newSpecies->cullRate = 0;
 			speciesList->push_back(newSpecies);
+			newSpecies->representative->setSpecies(speciesList->size() - 1);
 		}
 	}
 }
@@ -108,7 +111,7 @@ void Population::calculateSpeciesAverageFitnesses(){
 	speciesAverageFitnessSum = 0.0;
 	for(int i = 0; i < speciesList->size(); i++){
 		speciesList->operator[](i)->averageFitness = 0.0;
-		for(int j = 0; j < speciesList->operator[](i)->members->size(); i++){
+		for(int j = 0; j < speciesList->operator[](i)->members->size(); j++){
 			speciesList->operator[](i)->averageFitness += speciesList->operator[](i)->members->operator[](j)->getSharedFitness();
 		}
 		speciesAverageFitnessSum += speciesList->operator[](i)->averageFitness;
@@ -150,12 +153,12 @@ void Population::reducePopulation(){
 					cullList->push_back(speciesList->operator[](i)->members->operator[](j));
 				}
 			}
-			else if(speciesList->operator[](i)->members->operator[](j)->getFitness() < cullList->operator[](cullList->size())->getFitness()){
+			else if((cullList->size() != 0) && speciesList->operator[](i)->members->operator[](j)->getFitness() < cullList->operator[](cullList->size() - 1)->getFitness()){
 				// If current organism has lower fitness than most fit member in cullList
 				for(int k = 0; k < cullList->size(); k++){
 					if(speciesList->operator[](i)->members->operator[](j)->getFitness() < cullList->operator[](k)->getFitness()){
 						cullList->insert(cullList->begin() + k, speciesList->operator[](i)->members->operator[](j));
-						cullList->erase(cullList->end());
+						cullList->erase(cullList->end() - 1);
 						break;
 					}
 				}
@@ -164,15 +167,16 @@ void Population::reducePopulation(){
 		for(int j = 0; j < cullList->size(); j++){
 			for(int k = 0; k < organisms->size(); k++){
 				if(organisms->operator[](k) == cullList->operator[](j)){
+					printf("ORGANISMS SIZE PRE: %d\n", (int)organisms->size());
 					organisms->erase(organisms->begin() + k);
+					printf("ORGANISMS SIZE POST: %d\n", (int)organisms->size());
 					break;
 				}
 			}
 			for(int k = 0; k < speciesList->operator[](i)->members->size(); k++){
-				if(speciesList->operator[](i)->members->operator[](k) == cullList->operator[](k)){
+				if(speciesList->operator[](i)->members->operator[](k) == cullList->operator[](j)){
 					speciesList->operator[](i)->members->erase(speciesList->operator[](i)->members->begin() + k);
 					break;
-
 				}
 			}
 			delete cullList->operator[](j);
@@ -225,11 +229,13 @@ void Population::setSpeciesReps(){
 	Species* currentSpecies;
 	for(int i = 0; i < speciesList->size(); i++){
 		currentSpecies = speciesList->operator[](i);
-		currentSpecies->representative = currentSpecies->members->operator[](rand() % currentSpecies->members->size());
+		if(currentSpecies->members->size() != 0){
+			currentSpecies->representative = currentSpecies->members->operator[](rand() % currentSpecies->members->size());
+		}
 	}
 }
 
-void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
+void Population::evaluatePopulation(void* evaluationFunction(Network* network, double* fitness)){
 	// Initialize population
 	// For each generation:
 	//		Clear innovations and species members
@@ -241,32 +247,73 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network)){
 
 	initializePopulation();
 	for(int i = 0; i < POPULATION_MAX_GENERATION; i++){
+		printf("--- GENERATION %d ---\n\n", i);
+		printPopulationStats();
+		//printf("\n - Removing innovations...\n");
 		for(int j = 0; j < innovations->size(); j++){
 			delete innovations->operator[](j);
 		}
 		innovations->clear();
+		//printf(" - Clearing species members...\n");
 		for(int j = 0; j < speciesList->size(); j++){
 			speciesList->operator[](j)->members->clear();
 		}
+		//printf(" - Speciating population...\n");
 		speciatePopulation();
+		//printf(" - Evaluating genomes...\n");
 		for(int j = 0; j < organisms->size(); j++){
 			evaluateGenome(evaluationFunction, organisms->operator[](j));
 		}
+		//printf(" - Calculating species average fitnesses...\n");
 		calculateSpeciesAverageFitnesses();
+		//printf(" - Calculating species size changes...\n");
+		calculateSpeciesSizeChanges();
+		//printf(" - Reducing population...\n");
 		reducePopulation();
+		//printf(" - Repopulating...\n");
 		repopulate();
+		//printf(" - Mutating population...\n");
 		for(int j = 0; j < organisms->size(); j++){
 			Mutation::mutate(organisms->operator[](j), this);
 		}
+		//printf(" - Setting species representatives...\n\n");
 		setSpeciesReps();
 	}
 }
 
-void Population::evaluateGenome(void* evaluationFunction(Network* network), Genome* currentGenome){
+void Population::printPopulationStats(){
+	double fitnessSum;
+	double maxFitness;
+
+	for(int i = 0; i < speciesList->size(); i++){
+		fitnessSum = 0.0;
+		maxFitness = 0.0;
+		
+		printf("\tSpecies %d - %d members:\n", i, (int)speciesList->operator[](i)->members->size());
+		for(int j = 0; j < speciesList->operator[](i)->members->size(); j++){
+			if(speciesList->operator[](i)->members->operator[](j)->getFitness() > maxFitness){
+				maxFitness = speciesList->operator[](i)->members->operator[](j)->getFitness();
+			}
+			fitnessSum += speciesList->operator[](i)->members->operator[](j)->getFitness();
+		}
+		printf("\t\tGoal fitness: %f\n", POPULATION_MAX_GENOME_FITNESS);
+		printf("\t\tMax fitness: %f\n", maxFitness);
+		printf("\t\tAverage fitness: %f\n", fitnessSum / (double)speciesList->operator[](i)->members->size());
+	}
+}
+
+void Population::evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome* currentGenome){
 	Network* phenotype = new Network(currentGenome);
-	currentGenome->setFitness(*(double*)(evaluationFunction(phenotype)));
+	double fit = 0.0;
+	evaluationFunction(phenotype, &fit);
+	currentGenome->setFitness(fit);
 	currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[](currentGenome->getSpecies())->members->size());
+	if(currentGenome->getFitness() >= POPULATION_MAX_GENOME_FITNESS){
+		printf("\nGenome %d exceeds max fitness %f with %f\n", currentGenome->getId(), POPULATION_MAX_GENOME_FITNESS, currentGenome->getFitness());
+		currentGenome->printGenotype();
+	}
 	delete phenotype;
+	phenotype = NULL;
 }
 
 bool Population::_innovationEqual(Innovation* innovation, MutationType mType, GeneType gType, int input, int output){
@@ -287,22 +334,27 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	double matchingConnectionGeneWeightDifferenceSum = 0.0;
 	int maxTotalGenomeSize = std::max(a->getNodeKeys()->size() + a->getConnectionKeys()->size(), b->getNodeKeys()->size() + b->getConnectionKeys()->size());
 
-	if(a->getNodeKeys()->operator[](a->getNodeKeys()->size() - 1) < b->getNodeKeys()->operator[](b->getNodeKeys()->size() - 1)){
-		maxPossibleMatchingNodeGeneInnovation = a->getNodeKeys()->operator[](a->getNodeKeys()->size() - 1);
-		maxNodeGeneInnovation = b->getNodeKeys()->operator[](b->getNodeKeys()->size() - 1);
+	int finalNodeKeyA = a->getNodeKeys()->size() != 0 ? a->getNodeKeys()->operator[](a->getNodeKeys()->size() - 1) : -1;
+	int finalNodeKeyB = b->getNodeKeys()->size() != 0 ? b->getNodeKeys()->operator[](b->getNodeKeys()->size() - 1) : -1;
+	int finalConnectionKeyA = a->getConnectionKeys()->size() != 0 ? a->getConnectionKeys()->operator[](a->getConnectionKeys()->size() - 1) : -1;
+	int finalConnectionKeyB = b->getConnectionKeys()->size() != 0 ? b->getConnectionKeys()->operator[](b->getConnectionKeys()->size() - 1) : -1;
+
+	if(finalNodeKeyA < finalNodeKeyB){
+		maxPossibleMatchingNodeGeneInnovation = finalNodeKeyA;
+		maxNodeGeneInnovation = finalNodeKeyB;
 	}
 	else{
-		maxPossibleMatchingNodeGeneInnovation = b->getNodeKeys()->operator[](b->getNodeKeys()->size() - 1);
-		maxNodeGeneInnovation = a->getNodeKeys()->operator[](a->getNodeKeys()->size() - 1);
+		maxPossibleMatchingNodeGeneInnovation = finalNodeKeyB;
+		maxNodeGeneInnovation = finalNodeKeyA;
 	}
 
-	if(a->getConnectionKeys()->operator[](a->getConnectionKeys()->size() - 1) < b->getConnectionKeys()->operator[](b->getConnectionKeys()->size() - 1)){
-		maxPossibleMatchingConnectionGeneInnovation = a->getConnectionKeys()->operator[](a->getConnectionKeys()->size() - 1);
-		maxConnectionGeneInnovation = b->getConnectionKeys()->operator[](b->getConnectionKeys()->size() - 1);
+	if(finalConnectionKeyA < finalConnectionKeyB){
+		maxPossibleMatchingConnectionGeneInnovation = finalConnectionKeyA;
+		maxConnectionGeneInnovation = finalConnectionKeyB;
 	}
 	else{
-		maxPossibleMatchingConnectionGeneInnovation = b->getConnectionKeys()->operator[](b->getConnectionKeys()->size() - 1);
-		maxConnectionGeneInnovation = a->getConnectionKeys()->operator[](a->getConnectionKeys()->size() - 1);
+		maxPossibleMatchingConnectionGeneInnovation = finalConnectionKeyB;
+		maxConnectionGeneInnovation = finalConnectionKeyA;
 	}
 
 	bool aContainsInnovation = false;
@@ -315,6 +367,7 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 			disjointGenes++;
 		}
 	}	
+
 	for(int i = maxPossibleMatchingNodeGeneInnovation + 1; i <= maxNodeGeneInnovation; i++){
 		aContainsInnovation = std::find(a->getNodeKeys()->begin(), a->getNodeKeys()->end(), i) != a->getNodeKeys()->end();
 		bContainsInnovation = std::find(b->getNodeKeys()->begin(), b->getNodeKeys()->end(), i) != b->getNodeKeys()->end();
@@ -360,7 +413,7 @@ void Population::copyNodeGeneBernoulli(Genome* genome, NodeGene* geneA, NodeGene
 	newNodeGene->type = sourceNodeGene->type;
 	newNodeGene->enabled = sourceNodeGene->enabled;
 	
-	if(newNodeGene->type == NodeType::Hidden){
+	if(newNodeGene->type == Hidden){
 		genome->getHiddenNodeKeys()->push_back(innov);
 	}
 	genome->getNodeKeys()->push_back(innov);
@@ -377,7 +430,7 @@ void Population::copyNodeGeneBernoulli(Genome* genome, NodeGene* gene, int innov
 		newNodeGene->type = gene->type;
 		newNodeGene->enabled = gene->enabled;
 
-		if(newNodeGene->type == NodeType::Hidden){
+		if(newNodeGene->type == Hidden){
 			genome->getHiddenNodeKeys()->push_back(innov);
 		}
 		genome->getNodeKeys()->push_back(innov);
@@ -393,7 +446,7 @@ void Population::copyNodeGene(Genome* genome, NodeGene* gene, int innov){
 	newNodeGene->type = gene->type;
 	newNodeGene->enabled = gene->enabled;
 
-	if(newNodeGene->type == NodeType::Hidden){
+	if(newNodeGene->type == Hidden){
 		genome->getHiddenNodeKeys()->push_back(innov);
 	}
 	genome->getNodeKeys()->push_back(innov);

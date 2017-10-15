@@ -5,8 +5,8 @@
 #include "Genome.h"
 #include "Population.h"
 
-enum MutationType { AddNode, AddConnection, PerturbBias, PerturbWeight, ToggleNode, ToggleConnection, End = ToggleConnection };
-enum GeneType { GeneTypeConnection, GeneTypeNode };
+//enum MutationType { AddNode, AddConnection, PerturbBias, PerturbWeight, ToggleNode, ToggleConnection, End = ToggleConnection };
+//enum GeneType { GeneTypeConnection, GeneTypeNode };
 
 class Mutation{
 public:
