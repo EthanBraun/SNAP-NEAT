@@ -130,8 +130,9 @@ void Population::calculateSpeciesAverageFitnesses(){
 void Population::calculateSpeciesSizeChanges(){
 	Species* currentSpecies;
 	for(int i = 0; i < speciesList->size(); i++){
+		printf("\t\t\t\tCURRENT SPECIES AVERAGE FITNESS: %f\n", speciesList->operator[](i)->averageFitness);
 		currentSpecies = speciesList->operator[](i);
-		currentSpecies->spawnRate = (int)round((currentSpecies->averageFitness / speciesAverageFitnessSum) * POPULATION_PURGE_COUNT);
+		currentSpecies->spawnRate = currentSpecies->members->size() != 0 ? (int)round((currentSpecies->averageFitness / speciesAverageFitnessSum) * POPULATION_PURGE_COUNT) : 0;
 		currentSpecies->cullRate = (int)round(((double)currentSpecies->members->size() / (double)POPULATION_SIZE) * POPULATION_PURGE_COUNT);
 		printf("\n\t\t\tSpecies %d->spawnRate = %d : %d%% of %u\n", i, currentSpecies->spawnRate, (int)round(100 * (currentSpecies->averageFitness / speciesAverageFitnessSum)), POPULATION_PURGE_COUNT);
 		printf("\t\t\tSpecies %d->cullRate = %d : %d%% of %u\n", i, currentSpecies->cullRate, (int)round(100 * ((double)currentSpecies->members->size() / (double)POPULATION_SIZE)), POPULATION_PURGE_COUNT);
@@ -257,7 +258,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 	initializePopulation();
 	for(int i = 0; i < POPULATION_MAX_GENERATION; i++){
 		printf("\n--- GENERATION %d --- %d organisms\n", i, (int)organisms->size());
-		printPopulationStats();
+		//printPopulationStats();
 		//printf("\n - Removing innovations...\n");
 		for(int j = 0; j < innovations->size(); j++){
 			delete innovations->operator[](j);
@@ -277,6 +278,8 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 		calculateSpeciesAverageFitnesses();
 		//printf(" - Calculating species size changes...\n");
 		calculateSpeciesSizeChanges();
+		
+		printPopulationStats();
 		//printf(" - Reducing population...\n");
 		reducePopulation();
 		//printf(" - Repopulating...\n");
@@ -316,7 +319,12 @@ void Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 	double fit = 0.0;
 	evaluationFunction(phenotype, &fit);
 	currentGenome->setFitness(fit);
-	currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[](currentGenome->getSpecies())->members->size());
+	if(speciesList->operator[](currentGenome->getSpecies())->members->size() != 0){
+		currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[](currentGenome->getSpecies())->members->size());
+	}
+	else{
+		currentGenome->setSharedFitness(currentGenome->getFitness());
+	}
 	if(currentGenome->getFitness() >= POPULATION_MAX_GENOME_FITNESS){
 		printf("\nGenome %d exceeds max fitness %f with %f\n", currentGenome->getId(), POPULATION_MAX_GENOME_FITNESS, currentGenome->getFitness());
 		currentGenome->printGenotype();
