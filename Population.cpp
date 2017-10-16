@@ -1,5 +1,6 @@
 #include "Population.h"
 #include "Mutation.h"
+#include <limits.h>
 
 Population::Population(){
 	innovationNumber = 0;
@@ -105,6 +106,14 @@ void Population::speciatePopulation(){
 			newSpecies->representative->setSpecies(speciesList->size() - 1);
 		}
 	}
+
+	for(int i = 0; i < speciesList->size(); i++){
+		if(speciesList->operator[](i)->members->size() == 0){
+			delete speciesList->operator[](i)->members;
+			delete speciesList->operator[](i);
+			speciesList->erase(speciesList->begin() + i);
+		}
+	}
 }
 
 void Population::calculateSpeciesAverageFitnesses(){
@@ -123,7 +132,9 @@ void Population::calculateSpeciesSizeChanges(){
 	for(int i = 0; i < speciesList->size(); i++){
 		currentSpecies = speciesList->operator[](i);
 		currentSpecies->spawnRate = (int)round((currentSpecies->averageFitness / speciesAverageFitnessSum) * POPULATION_PURGE_COUNT);
-		currentSpecies->cullRate = (int)round((currentSpecies->members->size() / POPULATION_SIZE) * POPULATION_PURGE_COUNT);
+		currentSpecies->cullRate = (int)round(((double)currentSpecies->members->size() / (double)POPULATION_SIZE) * POPULATION_PURGE_COUNT);
+		printf("\n\t\t\tSpecies %d->spawnRate = %d : %d%% of %u\n", i, currentSpecies->spawnRate, (int)round(100 * (currentSpecies->averageFitness / speciesAverageFitnessSum)), POPULATION_PURGE_COUNT);
+		printf("\t\t\tSpecies %d->cullRate = %d : %d%% of %u\n", i, currentSpecies->cullRate, (int)round(100 * ((double)currentSpecies->members->size() / (double)POPULATION_SIZE)), POPULATION_PURGE_COUNT);
 	}
 }
 
@@ -337,14 +348,14 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 		if((currentNodeKeyIndexA > maxNodeKeyIndexA) && (currentNodeKeyIndexB > maxNodeKeyIndexB)){
 			break;
 		}
-		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? a->getNodeKeys()->operator[](currentNodeKeyIndexA) : 1000000;
-		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? b->getNodeKeys()->operator[](currentNodeKeyIndexB) : 1000000;
+		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? a->getNodeKeys()->operator[](currentNodeKeyIndexA) : INT_MAX;
+		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? b->getNodeKeys()->operator[](currentNodeKeyIndexB) : INT_MAX;
 
 		if(currentNodeKeyA == currentNodeKeyB){
 			currentNodeKeyIndexA++;
 			currentNodeKeyIndexB++;
 		}
-		else if((currentNodeKeyA < currentNodeKeyB) || (currentNodeKeyIndexB > maxNodeKeyIndexB)){
+		else if((currentNodeKeyA < currentNodeKeyB) || (currentNodeKeyB == -1)){
 			if((maxNodeKeyIndexB != -1) && (currentNodeKeyA < b->getNodeKeys()->operator[](maxNodeKeyIndexB))){
 				disjointGenes++;
 			}
@@ -353,7 +364,7 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 			}
 			currentNodeKeyIndexA++;
 		}
-		else if((currentNodeKeyA > currentNodeKeyB) || (currentNodeKeyIndexA > maxNodeKeyIndexA)){
+		else if((currentNodeKeyA > currentNodeKeyB) || (currentNodeKeyA == -1)){
 			if((maxNodeKeyIndexA != -1) && (currentNodeKeyB < a->getNodeKeys()->operator[](maxNodeKeyIndexA))){
 				disjointGenes++;
 			}
@@ -371,36 +382,38 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	int currentConnectionKeyA = 0;
 	int currentConnectionKeyB = 0;
 
-	while(true){
-		if((currentConnectionKeyIndexA > maxConnectionKeyIndexA) && (currentConnectionKeyIndexB > maxConnectionKeyIndexB)){
-			break;
-		}
-		currentConnectionKeyA = currentConnectionKeyIndexA <= maxConnectionKeyIndexA ? a->getConnectionKeys()->operator[](currentConnectionKeyIndexA) : 1000000;
-		currentConnectionKeyB = currentConnectionKeyIndexB <= maxConnectionKeyIndexB ? b->getConnectionKeys()->operator[](currentConnectionKeyIndexB) : 1000000;
+	if(!(a->getConnectionKeys()->size() == 0 && b->getConnectionKeys()->size() == 0)){
+		while(true){
+			if((currentConnectionKeyIndexA > maxConnectionKeyIndexA) && (currentConnectionKeyIndexB > maxConnectionKeyIndexB)){
+				break;
+			}
+			currentConnectionKeyA = currentConnectionKeyIndexA <= maxConnectionKeyIndexA ? a->getConnectionKeys()->operator[](currentConnectionKeyIndexA) : INT_MAX;
+			currentConnectionKeyB = currentConnectionKeyIndexB <= maxConnectionKeyIndexB ? b->getConnectionKeys()->operator[](currentConnectionKeyIndexB) : INT_MAX;
 
-		if(currentConnectionKeyA == currentConnectionKeyB){
-			matchingConnectionGeneCount++;
-			matchingConnectionGeneWeightDifferenceSum += std::abs(a->getConnectionGenes()->operator[](currentConnectionKeyA)->weight - b->getConnectionGenes()->operator[](currentConnectionKeyB)->weight);
-			currentConnectionKeyIndexA++;
-			currentConnectionKeyIndexB++;
-		}
-		else if((currentConnectionKeyA < currentConnectionKeyB) || (currentConnectionKeyIndexB > maxConnectionKeyIndexB)){
-			if((maxConnectionKeyIndexB != -1) && (currentConnectionKeyA < b->getConnectionKeys()->operator[](maxConnectionKeyIndexB))){
-				disjointGenes++;
+			if(currentConnectionKeyA == currentConnectionKeyB){
+				matchingConnectionGeneCount++;
+				matchingConnectionGeneWeightDifferenceSum += std::abs(a->getConnectionGenes()->operator[](currentConnectionKeyA)->weight - b->getConnectionGenes()->operator[](currentConnectionKeyB)->weight);
+				currentConnectionKeyIndexA++;
+				currentConnectionKeyIndexB++;
 			}
-			else{
-				excessGenes++;
+			else if((currentConnectionKeyA < currentConnectionKeyB) || (currentConnectionKeyB == -1)){
+				if((maxConnectionKeyIndexB != -1) && (currentConnectionKeyA < b->getConnectionKeys()->operator[](maxConnectionKeyIndexB))){
+					disjointGenes++;
+				}
+				else{
+					excessGenes++;
+				}
+				currentConnectionKeyIndexA++;
 			}
-			currentConnectionKeyIndexA++;
-		}
-		else if((currentConnectionKeyA > currentConnectionKeyB) || (currentConnectionKeyIndexA > maxConnectionKeyIndexA)){
-			if((maxConnectionKeyIndexA != -1) && (currentConnectionKeyB < a->getConnectionKeys()->operator[](maxConnectionKeyIndexA))){
-				disjointGenes++;
+			else if((currentConnectionKeyA > currentConnectionKeyB) || (currentConnectionKeyA == -1)){
+				if((maxConnectionKeyIndexA != -1) && (currentConnectionKeyB < a->getConnectionKeys()->operator[](maxConnectionKeyIndexA))){
+					disjointGenes++;
+				}
+				else{
+					excessGenes++;
+				}
+				currentConnectionKeyIndexB++;
 			}
-			else{
-				excessGenes++;
-			}
-			currentConnectionKeyIndexB++;
 		}
 	}
 
@@ -410,7 +423,6 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 		compatibilityDistance += GENOME_COMPATIBILITY_COEFFICIENT_THREE * ((double)matchingConnectionGeneWeightDifferenceSum / (double)matchingConnectionGeneCount);
 	}
 	// Potentially add fourth coefficient for matching node biases
-
 	return compatibilityDistance;
 }
 
