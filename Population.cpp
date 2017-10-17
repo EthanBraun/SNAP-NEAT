@@ -109,8 +109,10 @@ void Population::speciatePopulation(){
 
 	for(int i = 0; i < speciesList->size(); i++){
 		if(speciesList->operator[](i)->members->size() == 0){
+			printf("Deleting species %d\n", i);
 			delete speciesList->operator[](i)->members;
 			delete speciesList->operator[](i);
+			speciesList->operator[](i) = NULL;
 			speciesList->erase(speciesList->begin() + i);
 		}
 	}
@@ -153,9 +155,9 @@ void Population::reducePopulation(){
 		for(int j = 0; j < speciesList->operator[](i)->members->size(); j++){
 			if(cullList->size() < speciesList->operator[](i)->cullRate){
 				// Add current organism to cullList
+				organismPlaced = false;
 				for(int k = 0; k < cullList->size(); k++){
-					organismPlaced = false;
-					if(speciesList->operator[](i)->members->operator[](j)->getFitness() < cullList->operator[](k)->getFitness()){
+					if(speciesList->operator[](i)->members->operator[](j)->getFitness() <= cullList->operator[](k)->getFitness()){
 						cullList->insert(cullList->begin() + k, speciesList->operator[](i)->members->operator[](j));
 						organismPlaced = true;
 						break;
@@ -234,6 +236,19 @@ void Population::repopulate(){
 	}
 }
 
+void Population::removeEmptySpecies(){
+	for(int i = 0; i < speciesList->size(); i++){
+		printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
+		if(speciesList->operator[](i)->members->size() == 0){
+			printf("Deleting species %d\n", i);
+			delete speciesList->operator[](i)->members;
+			delete speciesList->operator[](i);
+			speciesList->erase(speciesList->begin() + i);
+			i--;
+		}
+	}
+}
+
 void Population::setSpeciesReps(){
 	// Randomly select representative genomes for each species
 	Species* currentSpecies;
@@ -284,6 +299,8 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 		reducePopulation();
 		//printf(" - Repopulating...\n");
 		repopulate();
+
+		removeEmptySpecies();
 		//printf(" - Mutating population...\n");
 		for(int j = 0; j < organisms->size(); j++){
 			Mutation::mutate(organisms->operator[](j), this);

@@ -49,6 +49,7 @@ public:
 	void calculateSpeciesSizeChanges();
 	void reducePopulation();
 	void repopulate();
+	void removeEmptySpecies();
 	void setSpeciesReps();
 	void evaluatePopulation(void* evaluationFunction(Network* network, double* fitness));
 	void evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome*);
