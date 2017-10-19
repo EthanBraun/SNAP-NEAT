@@ -191,6 +191,7 @@ void Population::reducePopulation(){
 					break;
 				}
 			}
+			printf("\t\t\t\tDELETING ORGANISM %d of %d\n", j, (int)cullList->size() - 1);
 			delete cullList->operator[](j);
 			cullList->operator[](j) = NULL;
 		}
@@ -336,6 +337,7 @@ void Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 	double fit = 0.0;
 	evaluationFunction(phenotype, &fit);
 	currentGenome->setFitness(fit);
+	// Check that current genome's species still exists otherwise seg fault could occur
 	if(speciesList->operator[](currentGenome->getSpecies())->members->size() != 0){
 		currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[](currentGenome->getSpecies())->members->size());
 	}

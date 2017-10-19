@@ -88,9 +88,15 @@ void Mutation::addNode(Genome* genome, Population* population){
 
 void Mutation::addConnection(Genome* genome, Population* population){
 	// Get random two random nodes (output cannot be of type input)
+	// If input is type output, output cannot be of type output
 	// Add new connection between them
 	
-	int inputKey = rand() % genome->getNodeKeys()->size();
+	
+	int inputKey;
+	do{
+		inputKey = rand() % genome->getNodeKeys()->size();
+	} while(genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](inputKey))->type == Output);
+
 	NodeGene* inputNodeGene = genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](inputKey));
 	
 	std::vector<int>* currentOutputKeys = new std::vector<int>();
