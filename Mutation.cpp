@@ -91,11 +91,7 @@ void Mutation::addConnection(Genome* genome, Population* population){
 	// Add new connection between them
 	
 	
-	int inputKey;
-	do{
-		inputKey = rand() % genome->getNodeKeys()->size();
-	} while(genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](inputKey))->type == Output);
-
+	int inputKey = rand() % genome->getNodeKeys()->size();
 	NodeGene* inputNodeGene = genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](inputKey));
 	
 	std::vector<int>* currentOutputKeys = new std::vector<int>();
@@ -105,14 +101,14 @@ void Mutation::addConnection(Genome* genome, Population* population){
 		}
 	}
 
-	int outputKey;
-	NodeGene* outputNodeGene;
-	//	TODO: Fix infinite loop if no outputs are available
-	do{
-		outputKey = rand() % genome->getNodeKeys()->size();
-	} while((genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](outputKey))->type == Input) || (std::find(currentOutputKeys->begin(), currentOutputKeys->end(), outputKey) != currentOutputKeys->end()));
+	int outputKey = rand() % genome->getNodeKeys()->size();
+	if((genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](outputKey))->type == Input) || (std::find(currentOutputKeys->begin(), currentOutputKeys->end(), outputKey) != currentOutputKeys->end())){
+		delete currentOutputKeys;
+		return;
+	}
 
-	outputNodeGene = genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](outputKey));
+
+	NodeGene* outputNodeGene = genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](outputKey));
 
 	ConnectionGene* newConnectionGene = new ConnectionGene();
 	newConnectionGene->innovation = population->updateInnovations(AddConnection, GeneTypeConnection, inputKey, outputKey);
