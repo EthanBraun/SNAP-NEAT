@@ -1,6 +1,7 @@
 #include "Population.h"
 #include "Mutation.h"
 #include <limits.h>
+#include <stdexcept>
 
 Population::Population(){
 	innovationNumber = 0;
@@ -106,16 +107,7 @@ void Population::speciatePopulation(){
 			newSpecies->representative->setSpecies(speciesList->size() - 1);
 		}
 	}
-
-	for(int i = 0; i < speciesList->size(); i++){
-		if(speciesList->operator[](i)->members->size() == 0){
-			printf("Deleting species %d\n", i);
-			delete speciesList->operator[](i)->members;
-			delete speciesList->operator[](i);
-			speciesList->operator[](i) = NULL;
-			speciesList->erase(speciesList->begin() + i);
-		}
-	}
+	removeEmptySpecies();
 }
 
 void Population::calculateSpeciesAverageFitnesses(){
@@ -191,7 +183,6 @@ void Population::reducePopulation(){
 					break;
 				}
 			}
-			printf("\t\t\t\tDELETING ORGANISM %d of %d\n", j, (int)cullList->size() - 1);
 			delete cullList->operator[](j);
 			cullList->operator[](j) = NULL;
 		}
@@ -213,7 +204,7 @@ void Population::repopulate(){
 				parentA = organisms->operator[](randA);
 				do{
 					randB = rand() % organisms->size();
-				}while(randB == randA);
+				} while(randB == randA);
 				parentB = organisms->operator[](randB);
 			}
 			else if(speciesList->operator[](i)->members->size() == 1){
@@ -226,7 +217,7 @@ void Population::repopulate(){
 				parentA = speciesList->operator[](i)->members->operator[](randA);
 				do{
 					randB = rand() % speciesList->operator[](i)->members->size();
-				}while(randB == randA);
+				} while(randB == randA);
 				parentB = speciesList->operator[](i)->members->operator[](randB);
 			}
 			newGenome = new Genome(parentA, parentB);
@@ -238,6 +229,11 @@ void Population::repopulate(){
 }
 
 void Population::removeEmptySpecies(){
+	for(int i = 0; i < speciesList->size(); i++){
+		printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
+	}
+	printf("\n");
+
 	for(int i = 0; i < speciesList->size(); i++){
 		printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
 		if(speciesList->operator[](i)->members->size() == 0){
@@ -337,13 +333,19 @@ void Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 	double fit = 0.0;
 	evaluationFunction(phenotype, &fit);
 	currentGenome->setFitness(fit);
-	// Check that current genome's species still exists otherwise seg fault could occur
-	if(speciesList->operator[](currentGenome->getSpecies())->members->size() != 0){
-		currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[](currentGenome->getSpecies())->members->size());
+	try{
+		if(speciesList->at(currentGenome->getSpecies())->members->size() != 0){
+			currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[](currentGenome->getSpecies())->members->size());
+		}
+		else{
+			currentGenome->setSharedFitness(currentGenome->getFitness());
+		}
 	}
-	else{
-		currentGenome->setSharedFitness(currentGenome->getFitness());
+	catch(std::out_of_range &ex){
+		printf("Out of range exception caught whilst setting genome shared fitness\n");
+		currentGenome->setSharedFitness(0.0);
 	}
+
 	if(currentGenome->getFitness() >= POPULATION_MAX_GENOME_FITNESS){
 		printf("\nGenome %d exceeds max fitness %f with %f\n", currentGenome->getId(), POPULATION_MAX_GENOME_FITNESS, currentGenome->getFitness());
 		currentGenome->printGenotype();
