@@ -82,9 +82,13 @@ void Population::checkSpeciesStagnation(){
 	for(int i = 0; i < speciesList->size(); i++){
 		if(speciesList->operator[](i)->stagnant){
 			speciesList->operator[](i)->stagnation += 1;
-			printf("\t\t\t\t\t\tSPECIES %d HAS BEEN IN STAGNATION FOR %d GENERATION(S)\n", i, speciesList->operator[](i)->stagnation);
+			if(VERBOSE_LOG){
+				printf("\t\t\t\t\t\tSPECIES %d HAS BEEN IN STAGNATION FOR %d GENERATION(S)\n", i, speciesList->operator[](i)->stagnation);
+			}
 			if(speciesList->operator[](i)->stagnation > POPULATION_SPECIES_MAX_STAGNATION){
-				printf("\t\t\t\t\t\tSPECIES %d EXCEEDS MAX STAGNATION\n", i);
+				if(VERBOSE_LOG){
+					printf("\t\t\t\t\t\tSPECIES %d EXCEEDS MAX STAGNATION\n", i);
+				}
 				speciesList->operator[](i)->representative = NULL;
 				speciesList->operator[](i)->members->clear();
 				delete speciesList->operator[](i)->members;
@@ -152,14 +156,18 @@ void Population::calculateSpeciesFitnesses(){
 
 void Population::calculateSpeciesSizeChanges(){
 	Species* currentSpecies;
-	for(int i = 0; i < speciesList->size(); i++){
+	for(int i = 0; i < speciesList->size(); i++){		
 		printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f\n", speciesList->operator[](i)->maxFitness);
-		printf("\t\t\t\tCURRENT SPECIES AVERAGE FITNESS: %f\n", speciesList->operator[](i)->averageFitness);
+		if(VERBOSE_LOG){
+			printf("\t\t\t\tCURRENT SPECIES AVERAGE FITNESS: %f\n", speciesList->operator[](i)->averageFitness);
+		}
 		currentSpecies = speciesList->operator[](i);
 		currentSpecies->spawnRate = currentSpecies->members->size() != 0 ? (int)round((currentSpecies->averageFitness / speciesAverageFitnessSum) * POPULATION_PURGE_COUNT) : 0;
 		currentSpecies->cullRate = (int)round(((double)currentSpecies->members->size() / (double)POPULATION_SIZE) * POPULATION_PURGE_COUNT);
-		printf("\n\t\t\tSpecies %d->spawnRate = %d : %d%% of %u\n", i, currentSpecies->spawnRate, (int)round(100 * (currentSpecies->averageFitness / speciesAverageFitnessSum)), POPULATION_PURGE_COUNT);
-		printf("\t\t\tSpecies %d->cullRate = %d : %d%% of %u\n", i, currentSpecies->cullRate, (int)round(100 * ((double)currentSpecies->members->size() / (double)POPULATION_SIZE)), POPULATION_PURGE_COUNT);
+		if(VERBOSE_LOG){
+			printf("\n\t\t\tSpecies %d->spawnRate = %d : %d%% of %u\n", i, currentSpecies->spawnRate, (int)round(100 * (currentSpecies->averageFitness / speciesAverageFitnessSum)), POPULATION_PURGE_COUNT);
+			printf("\t\t\tSpecies %d->cullRate = %d : %d%% of %u\n", i, currentSpecies->cullRate, (int)round(100 * ((double)currentSpecies->members->size() / (double)POPULATION_SIZE)), POPULATION_PURGE_COUNT);
+		}
 	}
 }
 
@@ -254,22 +262,27 @@ void Population::repopulate(){
 			newGenome->setId(updateGenomeId());
 			speciesList->operator[](i)->members->push_back(newGenome);
 			organisms->push_back(newGenome);
-			//printf("\t\t\t\t\t\t\tNEW GENOME ID: %d\n", newGenome->getId());
 			newGenome = NULL;
 		}
 	}
 }
 
 void Population::removeEmptySpecies(){
-	for(int i = 0; i < speciesList->size(); i++){
-		printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
+	if(VERBOSE_LOG){
+		for(int i = 0; i < speciesList->size(); i++){
+			printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
+		}
+		printf("\n");
 	}
-	printf("\n");
 
 	for(int i = 0; i < speciesList->size(); i++){
-		printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
+		if(VERBOSE_LOG){
+			printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
+		}
 		if(speciesList->operator[](i)->members->size() == 0){
-			printf("Deleting species %d\n", i);
+			if(VERBOSE_LOG){
+				printf("Deleting species %d\n", i);
+			}
 			delete speciesList->operator[](i)->members;
 			delete speciesList->operator[](i);
 			speciesList->erase(speciesList->begin() + i);
@@ -324,7 +337,9 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 		//printf(" - Calculating species size changes...\n");
 		calculateSpeciesSizeChanges();
 		
-		printPopulationStats();
+		if(VERBOSE_LOG){
+			printPopulationStats();
+		}
 		//printf(" - Reducing population...\n");
 		reducePopulation();
 		//printf(" - Repopulating...\n");
@@ -375,7 +390,9 @@ void Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 		}
 	}
 	catch(std::out_of_range &ex){
-		printf("Out of range exception caught whilst setting genome shared fitness\n");
+		if(VERBOSE_LOG){
+			printf("Out of range exception caught whilst setting genome shared fitness\n");
+		}
 		currentGenome->setSharedFitness(0.0);
 	}
 
