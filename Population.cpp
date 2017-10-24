@@ -77,6 +77,25 @@ void Population::initializePopulation(){
 	innovationNumber = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES;
 }
 
+void Population::checkSpeciesStagnation(){
+	// Removes stagnant species from the population
+	for(int i = 0; i < speciesList->size(); i++){
+		if(speciesList->operator[](i)->stagnant){
+			speciesList->operator[](i)->stagnation += 1;
+			printf("\t\t\t\t\t\tSPECIES %d HAS BEEN IN STAGNATION FOR %d GENERATION(S)\n", i, speciesList->operator[](i)->stagnation);
+			if(speciesList->operator[](i)->stagnation > POPULATION_SPECIES_MAX_STAGNATION){
+				printf("\t\t\t\t\t\tSPECIES %d EXCEEDS MAX STAGNATION\n", i);
+				speciesList->operator[](i)->representative = NULL;
+				speciesList->operator[](i)->members->clear();
+				delete speciesList->operator[](i)->members;
+				delete speciesList->operator[](i);
+				speciesList->erase(speciesList->begin() + i);
+				i--;
+			}
+		}
+	}
+}
+
 void Population::speciatePopulation(){
 	// For each organism:
 	//		For each species:
@@ -103,6 +122,9 @@ void Population::speciatePopulation(){
 			newSpecies->members->push_back(newSpecies->representative);
 			newSpecies->spawnRate = 0;
 			newSpecies->cullRate = 0;
+			newSpecies->stagnation = 0;
+			newSpecies->stagnant = false;
+			newSpecies->maxFitness = newSpecies->representative->getFitness();
 			speciesList->push_back(newSpecies);
 			newSpecies->representative->setSpecies(speciesList->size() - 1);
 		}
@@ -110,12 +132,19 @@ void Population::speciatePopulation(){
 	removeEmptySpecies();
 }
 
-void Population::calculateSpeciesAverageFitnesses(){
+void Population::calculateSpeciesFitnesses(){
+	// Calculate both average and max fitness for each species
 	speciesAverageFitnessSum = 0.0;
 	for(int i = 0; i < speciesList->size(); i++){
 		speciesList->operator[](i)->averageFitness = 0.0;
+		speciesList->operator[](i)->stagnant = true;
 		for(int j = 0; j < speciesList->operator[](i)->members->size(); j++){
 			speciesList->operator[](i)->averageFitness += speciesList->operator[](i)->members->operator[](j)->getSharedFitness();
+			if(speciesList->operator[](i)->members->operator[](j)->getFitness() > speciesList->operator[](i)->maxFitness){
+				speciesList->operator[](i)->maxFitness = speciesList->operator[](i)->members->operator[](j)->getFitness();
+				speciesList->operator[](i)->stagnant = false;
+				speciesList->operator[](i)->stagnation = 0;
+			}
 		}
 		speciesAverageFitnessSum += speciesList->operator[](i)->averageFitness;
 	}
@@ -124,6 +153,7 @@ void Population::calculateSpeciesAverageFitnesses(){
 void Population::calculateSpeciesSizeChanges(){
 	Species* currentSpecies;
 	for(int i = 0; i < speciesList->size(); i++){
+		printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f\n", speciesList->operator[](i)->maxFitness);
 		printf("\t\t\t\tCURRENT SPECIES AVERAGE FITNESS: %f\n", speciesList->operator[](i)->averageFitness);
 		currentSpecies = speciesList->operator[](i);
 		currentSpecies->spawnRate = currentSpecies->members->size() != 0 ? (int)round((currentSpecies->averageFitness / speciesAverageFitnessSum) * POPULATION_PURGE_COUNT) : 0;
@@ -280,6 +310,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 		for(int j = 0; j < speciesList->size(); j++){
 			speciesList->operator[](j)->members->clear();
 		}
+		checkSpeciesStagnation();
 		//printf(" - Speciating population...\n");
 		speciatePopulation();
 		//printf(" - Evaluating genomes...\n");
@@ -287,7 +318,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			evaluateGenome(evaluationFunction, organisms->operator[](j));
 		}
 		//printf(" - Calculating species average fitnesses...\n");
-		calculateSpeciesAverageFitnesses();
+		calculateSpeciesFitnesses();
 		//printf(" - Calculating species size changes...\n");
 		calculateSpeciesSizeChanges();
 		

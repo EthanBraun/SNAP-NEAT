@@ -16,6 +16,9 @@ struct Species{
 	std::vector<Genome*>* members;
 	int spawnRate;
 	int cullRate;
+	int stagnation;
+	bool stagnant;
+	double maxFitness;
 };
 
 struct Innovation{
@@ -44,8 +47,9 @@ public:
 	std::vector<Species*>* getSpeciesList();
 	std::vector<Innovation*>* getInnovations();
 	void initializePopulation();
+	void checkSpeciesStagnation();
 	void speciatePopulation();
-	void calculateSpeciesAverageFitnesses();
+	void calculateSpeciesFitnesses();
 	void calculateSpeciesSizeChanges();
 	void reducePopulation();
 	void repopulate();
