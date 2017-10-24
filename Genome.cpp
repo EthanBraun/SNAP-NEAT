@@ -136,7 +136,7 @@ std::map<int, ConnectionGene*>* Genome::getConnectionGenes(){
 	return connectionGenes;
 }
 
-int Genome::getId(){
+long Genome::getId(){
 	return id;
 }
 
@@ -152,7 +152,7 @@ double Genome::getSharedFitness(){
 	return sharedFitness;
 }
 
-void Genome::setId(int idVal){
+void Genome::setId(long idVal){
 	id = idVal;
 }
 

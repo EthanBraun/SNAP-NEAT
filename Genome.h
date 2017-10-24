@@ -22,7 +22,7 @@ struct ConnectionGene {
 
 class Genome {
 private:
-	int id;
+	long id;
 	std::vector<int>* hiddenNodeKeys; 
 	std::vector<int>* nodeKeys;
 	std::vector<int>* connectionKeys;
@@ -41,11 +41,11 @@ public:
 	std::vector<int>* getConnectionKeys();
 	std::map<int, NodeGene*>* getNodeGenes();
 	std::map<int, ConnectionGene*>* getConnectionGenes();
-	int getId();
+	long getId();
 	int getSpecies();
 	double getFitness();
 	double getSharedFitness();
-	void setId(int);
+	void setId(long);
 	void setSpecies(int);
 	void setFitness(double);
 	void setSharedFitness(double);

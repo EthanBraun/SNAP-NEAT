@@ -31,7 +31,7 @@ struct Innovation{
 
 class Population{
 private:
-	int genomeId;
+	long genomeId;
 	int innovationNumber;
 	double speciesAverageFitnessSum;
     std::vector<Genome*>* organisms;
@@ -41,7 +41,7 @@ private:
 public:
     Population();
 
-	int updateGenomeId();
+	long updateGenomeId();
 	int updateInnovations(MutationType, GeneType, int, int);
 	std::vector<Genome*>* getOrganisms();
 	std::vector<Species*>* getSpeciesList();

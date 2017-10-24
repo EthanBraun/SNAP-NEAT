@@ -34,7 +34,7 @@ void* fitnessFunction(Network* network, double* fitness){
 		printf("\n");
 		for(int i = 0; i < 4; i++){
 			network->activate(inputs->operator[](i));
-			printf("\t%f NAND %f ~= %f\n", inputs->operator[](i)->operator[](0), inputs->operator[](i)->operator[](1), outputs->operator[](i));
+			printf("\t%f OR %f ~= %f\n", inputs->operator[](i)->operator[](0), inputs->operator[](i)->operator[](1), outputs->operator[](i));
 		}
 	}
 

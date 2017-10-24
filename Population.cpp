@@ -8,10 +8,10 @@ Population::Population(){
 	organisms = new std::vector<Genome*>();
 	speciesList = new std::vector<Species*>();
 	innovations = new std::vector<Innovation*>();
-}
+}	
 
-int Population::updateGenomeId(){
-	int currentGenomeId = genomeId;
+long Population::updateGenomeId(){
+	long currentGenomeId = genomeId;
 	genomeId++;
 	return currentGenomeId;
 }
@@ -251,8 +251,10 @@ void Population::repopulate(){
 				parentB = speciesList->operator[](i)->members->operator[](randB);
 			}
 			newGenome = new Genome(parentA, parentB);
+			newGenome->setId(updateGenomeId());
 			speciesList->operator[](i)->members->push_back(newGenome);
 			organisms->push_back(newGenome);
+			//printf("\t\t\t\t\t\t\tNEW GENOME ID: %d\n", newGenome->getId());
 			newGenome = NULL;
 		}
 	}
@@ -378,7 +380,8 @@ void Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 	}
 
 	if(currentGenome->getFitness() >= POPULATION_MAX_GENOME_FITNESS){
-		printf("\nGenome %d exceeds max fitness %f with %f\n", currentGenome->getId(), POPULATION_MAX_GENOME_FITNESS, currentGenome->getFitness());
+		printf("\nGenome %ld exceeds max fitness %f with %f\n", currentGenome->getId(), POPULATION_MAX_GENOME_FITNESS, currentGenome->getFitness());
+		printf("\t\tPOPULATION GENOME ID -- LONG_MAX: %ld -- %ld\n", genomeId, LONG_MAX);
 		currentGenome->printGenotype();
 	}
 	delete phenotype;
