@@ -312,47 +312,53 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 	//		Reproduce to full population and mutate
 	//		Randomly select representative genomes for each species
 
-	initializePopulation();
-	for(int i = 0; i < POPULATION_MAX_GENERATION; i++){
-		printf("\n--- GENERATION %d --- %d organisms\n", i, (int)organisms->size());
-		//printPopulationStats();
-		//printf("\n - Removing innovations...\n");
-		for(int j = 0; j < innovations->size(); j++){
-			delete innovations->operator[](j);
-		}
-		innovations->clear();
-		//printf(" - Clearing species members...\n");
-		for(int j = 0; j < speciesList->size(); j++){
-			speciesList->operator[](j)->members->clear();
-		}
-		checkSpeciesStagnation();
-		//printf(" - Speciating population...\n");
-		speciatePopulation();
-		//printf(" - Evaluating genomes...\n");
-		for(int j = 0; j < organisms->size(); j++){
-			evaluateGenome(evaluationFunction, organisms->operator[](j));
-		}
-		//printf(" - Calculating species average fitnesses...\n");
-		calculateSpeciesFitnesses();
-		//printf(" - Calculating species size changes...\n");
-		calculateSpeciesSizeChanges();
-		
-		if(VERBOSE_LOG){
-			printPopulationStats();
-		}
-		//printf(" - Reducing population...\n");
-		reducePopulation();
-		//printf(" - Repopulating...\n");
-		repopulate();
+	do{
+		initializePopulation();
+		for(int i = 0; i < POPULATION_MAX_GENERATION; i++){
+			printf("\n--- GENERATION %d --- %d organisms\n", i, (int)organisms->size());
+			//printPopulationStats();
+			//printf("\n - Removing innovations...\n");
+			for(int j = 0; j < innovations->size(); j++){
+				delete innovations->operator[](j);
+			}
+			innovations->clear();
+			//printf(" - Clearing species members...\n");
+			for(int j = 0; j < speciesList->size(); j++){
+				speciesList->operator[](j)->members->clear();
+			}
+			checkSpeciesStagnation();
+			//printf(" - Speciating population...\n");
+			speciatePopulation();
+			//printf(" - Evaluating genomes...\n");
+			for(int j = 0; j < organisms->size(); j++){
+				evaluateGenome(evaluationFunction, organisms->operator[](j));
+			}
+			//printf(" - Calculating species average fitnesses...\n");
+			calculateSpeciesFitnesses();
+			//printf(" - Calculating species size changes...\n");
+			calculateSpeciesSizeChanges();
 
-		removeEmptySpecies();
-		//printf(" - Mutating population...\n");
-		for(int j = 0; j < organisms->size(); j++){
-			Mutation::mutate(organisms->operator[](j), this);
+			if(VERBOSE_LOG){
+				printPopulationStats();
+			}
+			//printf(" - Reducing population...\n");
+			reducePopulation();
+			//printf(" - Repopulating...\n");
+			repopulate();
+
+			removeEmptySpecies();
+			//printf(" - Mutating population...\n");
+			for(int j = 0; j < organisms->size(); j++){
+				Mutation::mutate(organisms->operator[](j), this);
+			}
+			//printf(" - Setting species representatives...\n\n");
+			setSpeciesReps();
 		}
-		//printf(" - Setting species representatives...\n\n");
-		setSpeciesReps();
-	}
+		for(int i = 0; i < organisms->size(); i++){
+			delete organisms->operator[](i);
+		}
+		organisms->clear();
+	} while(RESET_AT_MAX_GENERATION);
 }
 
 void Population::printPopulationStats(){

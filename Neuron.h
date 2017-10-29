@@ -21,6 +21,7 @@ public:
 	
 	int getInnovation();
 	double getActivation();
+	void resetActivation();
 
 	void addInput(Connection*);
 	void addOutput(Connection*);

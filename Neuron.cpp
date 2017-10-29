@@ -22,6 +22,10 @@ double Neuron::getActivation(){
 	return activation;
 }
 
+void Neuron::resetActivation(){
+	activation = 0.0;
+}
+
 void Neuron::addInput(Connection* inConnection){
 	inputs->push_back(inConnection);
 }
@@ -41,5 +45,5 @@ void Neuron::activate(){
 }
 
 void Neuron::activateDirect(double input){
-	activation = input + bias;
+	activation = input;
 }

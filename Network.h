@@ -3,6 +3,7 @@
 
 #include "Neuron.h"
 #include "Genome.h"
+#include "Config.h"
 #include <map>
 
 class Network {
@@ -28,6 +29,8 @@ public:
 	std::vector<Connection*>* getConnections();
 
 	void activate(std::vector<double>*);
+	void compileOutputs(std::vector<double>*);
+	void resetActivations();
 };
 
 #endif
