@@ -72,9 +72,28 @@ void Population::initializePopulation(){
 			genome->getNodeKeys()->push_back(GENOME_NUM_INPUT_NODES + j);
 			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES + j, outputNode));
 		}
+		if(POPULATION_INITIALIZE_GENOMES_CONNECTED){
+			int connectionInnov = 0;
+			for(int j = 0; j < genome->getNodeKeys(); j++){
+				for(int k = 0; k < genome->getNodeKeys(); k++){
+					if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
+						ConnectionGene* newConnection = new ConnectionGene();
+						newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
+						newConnection->inputId = j;
+						newConnection->outputId = k;
+						newConnection->weight = 1.0;
+						newConnection->enabled = true;
+						connectionInnov += 1;
+	
+						genome->getConnectionKeys()->push_back(newConnection->innovation);
+						genome->getConnectionGenes()->insert(std::pair<int, NodeGene*>(newConnection->innovation, newConnection));
+					}
+				}
+			}
+		}
 		organisms->push_back(genome);
 	}
-	innovationNumber = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES;
+	innovationNumber = POPULATION_INITIALIZE_GENOMES_CONNECTED ? (GENOME_NUM_INPUT_NODES * GENOME_NUM_OUTPUT_NODES) + GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES : GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES;
 }
 
 void Population::checkSpeciesStagnation(){

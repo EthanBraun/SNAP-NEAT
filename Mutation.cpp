@@ -18,12 +18,12 @@ void Mutation::mutate(Genome* genome, Population* population){
 			}
 			break;
 		case(PerturbBias):
-			if(r < MUTATION_RATE_PERTURB_BIAS){
+			if(r < MUTATION_RATE_PERTURB_BIAS_GENOME){
 				Mutation::perturbBias(genome);
 			}
 			break;
 		case(PerturbWeight):
-			if(r < MUTATION_RATE_PERTURB_WEIGHT){
+			if(r < MUTATION_RATE_PERTURB_WEIGHT_GENOME){
 				Mutation::perturbWeight(genome);
 			}
 			break;
@@ -124,23 +124,25 @@ void Mutation::addConnection(Genome* genome, Population* population){
 }
 
 void Mutation::perturbBias(Genome* genome){
-	// Get random node
-	// Perturb bias
-	int index = rand() % genome->getNodeKeys()->size();
-	double perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
-	genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](index))->bias += (NODE_GENE_MAX_BIAS_PERTURBATION * perturbationPercent);
+	// Perturb biases based on rate
+	double perturbationPercent;
+	for(int i = 0; i < genome->getNodeKeys()->size(); i++){
+		if(genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](i))->type != Input && ((double)rand() / (double)RAND_MAX) < MUTATION_RATE_PERTURB_BIAS_NODE){
+			perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
+			genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](i))->bias += (NODE_GENE_MAX_BIAS_PERTURBATION * perturbationPercent);
+		}	
+	}
 }
 
 void Mutation::perturbWeight(Genome* genome){
-	// Get random connection
-	// Perturb weight
-	if(genome->getConnectionKeys()->size() == 0){
-		return;
+	// Perturb weights based on rate
+	double perturbationPercent;
+	for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
+		if(((double)rand() / (double)RAND_MAX) < MUTATION_RATE_PERTURB_WEIGHT_CONNECTION){
+			perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
+			genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight += (CONNECTION_GENE_MAX_WEIGHT_PERTURBATION * perturbationPercent);
+		}
 	}
-
-	int index = rand() % genome->getConnectionKeys()->size();
-	double perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
-	genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](index))->weight += (CONNECTION_GENE_MAX_WEIGHT_PERTURBATION * perturbationPercent);
 }
 
 void Mutation::toggleNode(Genome* genome){
