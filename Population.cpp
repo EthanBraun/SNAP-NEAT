@@ -74,8 +74,8 @@ void Population::initializePopulation(){
 		}
 		if(POPULATION_INITIALIZE_GENOMES_CONNECTED){
 			int connectionInnov = 0;
-			for(int j = 0; j < genome->getNodeKeys(); j++){
-				for(int k = 0; k < genome->getNodeKeys(); k++){
+			for(int j = 0; j < genome->getNodeKeys()->size(); j++){
+				for(int k = 0; k < genome->getNodeKeys()->size(); k++){
 					if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
 						ConnectionGene* newConnection = new ConnectionGene();
 						newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
@@ -86,7 +86,7 @@ void Population::initializePopulation(){
 						connectionInnov += 1;
 	
 						genome->getConnectionKeys()->push_back(newConnection->innovation);
-						genome->getConnectionGenes()->insert(std::pair<int, NodeGene*>(newConnection->innovation, newConnection));
+						genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
 					}
 				}
 			}
