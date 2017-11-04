@@ -13,7 +13,6 @@ public:
 	static void mutate(Genome*, Population*);
 	static void addNode(Genome*, Population*);
 	static void addConnection(Genome*, Population*);
-	static void perturbBias(Genome*);
 	static void perturbWeight(Genome*);
 	static void toggleNode(Genome*);
 	static void toggleConnection(Genome*);

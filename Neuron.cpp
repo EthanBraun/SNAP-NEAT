@@ -1,10 +1,9 @@
 #include "Neuron.h"
 #include <cstdlib>
 
-Neuron::Neuron(int innovationNumber, double biasVal){
+Neuron::Neuron(int innovationNumber){
 	innovation = innovationNumber;
 	activation = 0.0;
-	bias = biasVal;
 	inputs = new std::vector<Connection*>();
 	outputs = new std::vector<Connection*>();
 }
@@ -40,7 +39,6 @@ void Neuron::activate(){
 	for(int i = 0; i < inputs->size(); i++){
 		newActivation += (inputs->operator[](i)->from->getActivation()) * (inputs->operator[](i)->weight);
 	}
-	newActivation += bias;
 	activation = sigmoid(newActivation);
 }
 

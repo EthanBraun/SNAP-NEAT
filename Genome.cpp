@@ -102,17 +102,24 @@ Genome::Genome(Genome* parentA, Genome* parentB){
 }
 
 Genome::~Genome(){
+	//printf("Freeing individual node genes\n");
 	for(int i = 0; i < nodeKeys->size(); i++){
 		delete nodeGenes->operator[](nodeKeys->operator[](i));
 	}
+	//printf("Freeing individual connection genes\n");
 	for(int i = 0; i < connectionKeys->size(); i++){
 		delete connectionGenes->operator[](connectionKeys->operator[](i));
 	}
 
+	//printf("Freeing hiddenNodeKeys\n");
 	delete hiddenNodeKeys;
+	//printf("Freeing nodeKeys\n");
 	delete nodeKeys;
+	//printf("Freeing connectionKeys\n");
 	delete connectionKeys;
+	//printf("Freeing nodeGenes\n");
 	delete nodeGenes;
+	//printf("Freeing connectionGenes\n");
 	delete connectionGenes;
 }
 
@@ -172,7 +179,6 @@ void Genome::printGenotype(){
 	printf("Node Genes -- (%d):\n", (int)nodeKeys->size());
 	for(int i = 0; i < nodeKeys->size(); i++){
 		printf("\tnodeGenes[%d]->innovation: %d\n", nodeKeys->operator[](i), nodeGenes->operator[](nodeKeys->operator[](i))->innovation);
-		printf("\tnodeGenes[%d]->bias: %f\n", nodeKeys->operator[](i), nodeGenes->operator[](nodeKeys->operator[](i))->bias);
 		printf("\tnodeGenes[%d]->type: %d\n", nodeKeys->operator[](i), nodeGenes->operator[](nodeKeys->operator[](i))->type);
 		printf("\tnodeGenes[%d]->enabled: %d\n\n", nodeKeys->operator[](i), nodeGenes->operator[](nodeKeys->operator[](i))->enabled);
 	}

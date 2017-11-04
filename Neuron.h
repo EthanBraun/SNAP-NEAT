@@ -11,12 +11,11 @@ class Neuron {
 private:
 	int innovation;
 	double activation;
-	double bias;
 	std::vector<Connection*>* inputs;
 	std::vector<Connection*>* outputs;
 
 public:
-	Neuron(int, double);
+	Neuron(int);
 	~Neuron();
 	
 	int getInnovation();

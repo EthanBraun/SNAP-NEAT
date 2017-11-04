@@ -55,17 +55,24 @@ void Population::initializePopulation(){
 		for(int j = 0; j < GENOME_NUM_INPUT_NODES; j++){
 			NodeGene* inputNode = new NodeGene();
 			inputNode->innovation = j;
-			inputNode->bias = 0.0;
 			inputNode->type = Input;
 			inputNode->enabled = true;
 
 			genome->getNodeKeys()->push_back(j);
 			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(j, inputNode));
 		}
-		for(int j = 0; j < GENOME_NUM_OUTPUT_NODES; j++){
+		// Add bias node
+		NodeGene* biasNode = new NodeGene();
+		biasNode->innovation = GENOME_NUM_INPUT_NODES;
+		biasNode->type = Input;
+		biasNode->enabled = true;
+
+		genome->getNodeKeys()->push_back(GENOME_NUM_INPUT_NODES);
+		genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES, biasNode));
+
+		for(int j = 1; j <= GENOME_NUM_OUTPUT_NODES; j++){
 			NodeGene* outputNode = new NodeGene();
 			outputNode->innovation = GENOME_NUM_INPUT_NODES + j;
-			outputNode->bias = 0.0;
 			outputNode->type = Output;
 			outputNode->enabled = true;
 
@@ -73,27 +80,30 @@ void Population::initializePopulation(){
 			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES + j, outputNode));
 		}
 		if(POPULATION_INITIALIZE_GENOMES_CONNECTED){
-			int connectionInnov = 0;
+			int connectionInnov = 1;
 			for(int j = 0; j < genome->getNodeKeys()->size(); j++){
-				for(int k = 0; k < genome->getNodeKeys()->size(); k++){
-					if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
-						ConnectionGene* newConnection = new ConnectionGene();
-						newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
-						newConnection->inputId = j;
-						newConnection->outputId = k;
-						newConnection->weight = 1.0;
-						newConnection->enabled = true;
-						connectionInnov += 1;
-	
-						genome->getConnectionKeys()->push_back(newConnection->innovation);
-						genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
+				// Don't initially connect bias node
+				if(j != GENOME_NUM_INPUT_NODES){
+					for(int k = 0; k < genome->getNodeKeys()->size(); k++){
+						if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
+							ConnectionGene* newConnection = new ConnectionGene();
+							newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
+							newConnection->inputId = j;
+							newConnection->outputId = k;
+							newConnection->weight = 1.0;
+							newConnection->enabled = true;
+							connectionInnov += 1;
+
+							genome->getConnectionKeys()->push_back(newConnection->innovation);
+							genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
+						}
 					}
 				}
 			}
 		}
 		organisms->push_back(genome);
 	}
-	innovationNumber = POPULATION_INITIALIZE_GENOMES_CONNECTED ? (GENOME_NUM_INPUT_NODES * GENOME_NUM_OUTPUT_NODES) + GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES : GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES;
+	innovationNumber = POPULATION_INITIALIZE_GENOMES_CONNECTED ? (GENOME_NUM_INPUT_NODES * GENOME_NUM_OUTPUT_NODES) + GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + 1 : GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + 1;
 }
 
 void Population::checkSpeciesStagnation(){
@@ -244,6 +254,7 @@ void Population::reducePopulation(){
 			cullList->operator[](j) = NULL;
 		}
 	}
+	cullList->clear();
 	delete cullList;
 }
 
@@ -527,7 +538,6 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	if(matchingConnectionGeneCount != 0){
 		compatibilityDistance += GENOME_COMPATIBILITY_COEFFICIENT_THREE * ((double)matchingConnectionGeneWeightDifferenceSum / (double)matchingConnectionGeneCount);
 	}
-	// Potentially add fourth coefficient for matching node biases
 	return compatibilityDistance;
 }
 
@@ -536,7 +546,6 @@ void Population::copyNodeGeneBernoulli(Genome* genome, NodeGene* geneA, NodeGene
 	NodeGene* sourceNodeGene = (rand() % 2 == 0) ? geneA : geneB;
 	
 	newNodeGene->innovation = sourceNodeGene->innovation;
-	newNodeGene->bias = sourceNodeGene->bias;
 	newNodeGene->type = sourceNodeGene->type;
 	newNodeGene->enabled = sourceNodeGene->enabled;
 	
@@ -553,7 +562,6 @@ void Population::copyNodeGeneBernoulli(Genome* genome, NodeGene* gene, int innov
 		newNodeGene = new NodeGene();
 
 		newNodeGene->innovation = gene->innovation;
-		newNodeGene->bias = gene->bias;
 		newNodeGene->type = gene->type;
 		newNodeGene->enabled = gene->enabled;
 
@@ -569,7 +577,6 @@ void Population::copyNodeGene(Genome* genome, NodeGene* gene, int innov){
 	NodeGene* newNodeGene = new NodeGene();
 
 	newNodeGene->innovation = gene->innovation;
-	newNodeGene->bias = gene->bias;
 	newNodeGene->type = gene->type;
 	newNodeGene->enabled = gene->enabled;
 

@@ -17,11 +17,6 @@ void Mutation::mutate(Genome* genome, Population* population){
 				Mutation::addConnection(genome, population);
 			}
 			break;
-		case(PerturbBias):
-			if(r < MUTATION_RATE_PERTURB_BIAS_GENOME){
-				Mutation::perturbBias(genome);
-			}
-			break;
 		case(PerturbWeight):
 			if(r < MUTATION_RATE_PERTURB_WEIGHT_GENOME){
 				Mutation::perturbWeight(genome);
@@ -56,7 +51,6 @@ void Mutation::addNode(Genome* genome, Population* population){
 	int nodeGeneInnovation = population->updateInnovations(AddNode, GeneTypeNode, currentConnectionGene->inputId, currentConnectionGene->outputId);
 	NodeGene* newNodeGene = new NodeGene();
 	newNodeGene->innovation = nodeGeneInnovation;
-	newNodeGene->bias = 0.0;
 	newNodeGene->type = Hidden;
 	newNodeGene->enabled = true;
 
@@ -121,17 +115,6 @@ void Mutation::addConnection(Genome* genome, Population* population){
 	genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(newConnectionGene->innovation, newConnectionGene));
 
 	delete currentOutputKeys;
-}
-
-void Mutation::perturbBias(Genome* genome){
-	// Perturb biases based on rate
-	double perturbationPercent;
-	for(int i = 0; i < genome->getNodeKeys()->size(); i++){
-		if(genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](i))->type != Input && ((double)rand() / (double)RAND_MAX) < MUTATION_RATE_PERTURB_BIAS_NODE){
-			perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
-			genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](i))->bias += (NODE_GENE_MAX_BIAS_PERTURBATION * perturbationPercent);
-		}	
-	}
 }
 
 void Mutation::perturbWeight(Genome* genome){

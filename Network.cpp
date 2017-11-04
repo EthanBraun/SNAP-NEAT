@@ -19,15 +19,15 @@ Network::Network(Genome* genome){
 		switch(currentNodeGene->type){
 		case(Input):
 			inputLayerKeys->push_back(currentNodeGene->innovation);
-			inputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, currentNodeGene->bias)));
+			inputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
 			break;
 		case(Hidden):
 			hiddenLayerKeys->push_back(currentNodeGene->innovation);
-			hiddenLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, currentNodeGene->bias)));
+			hiddenLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
 			break;
 		case(Output):
 			outputLayerKeys->push_back(currentNodeGene->innovation);
-			outputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, currentNodeGene->bias)));
+			outputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
 			break;
 		}
 	}
@@ -135,10 +135,17 @@ std::map<int, Neuron*>* Network::getOutputLayer(){
 	return outputLayer;
 }
 
+std::vector<Connection*>* Network::getConnections(){
+	return connections;
+}
+
 void Network::activate(std::vector<double>* inputs){
-	for(int i = 0; i < inputLayerKeys->size(); i++){
+	for(int i = 0; i < inputLayerKeys->size() - 1; i++){
 		inputLayer->operator[](inputLayerKeys->operator[](i))->activateDirect(inputs->operator[](i));
 	}
+	// Activate bias node
+	inputLayer->operator[](inputLayerKeys->operator[](inputLayerKeys->size() - 1))->activateDirect(1.0);
+
 	for(int i = 0; i < hiddenLayerKeys->size(); i++){
 		hiddenLayer->operator[](hiddenLayerKeys->operator[](i))->activate();
 	}

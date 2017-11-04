@@ -7,7 +7,6 @@
 
 struct NodeGene {
 	int innovation;
-	double bias;
 	NodeType type;
 	bool enabled;
 };
