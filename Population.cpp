@@ -70,38 +70,38 @@ void Population::initializePopulation(){
 		genome->getNodeKeys()->push_back(GENOME_NUM_INPUT_NODES);
 		genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES, biasNode));
 
-		for(int j = 1; j <= GENOME_NUM_OUTPUT_NODES; j++){
-			NodeGene* outputNode = new NodeGene();
-			outputNode->innovation = GENOME_NUM_INPUT_NODES + j;
-			outputNode->type = Output;
-			outputNode->enabled = true;
+for(int j = 1; j <= GENOME_NUM_OUTPUT_NODES; j++){
+	NodeGene* outputNode = new NodeGene();
+	outputNode->innovation = GENOME_NUM_INPUT_NODES + j;
+	outputNode->type = Output;
+	outputNode->enabled = true;
 
-			genome->getNodeKeys()->push_back(GENOME_NUM_INPUT_NODES + j);
-			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES + j, outputNode));
-		}
-		if(POPULATION_INITIALIZE_GENOMES_CONNECTED){
-			int connectionInnov = 1;
-			for(int j = 0; j < genome->getNodeKeys()->size(); j++){
-				// Don't initially connect bias node
-				if(j != GENOME_NUM_INPUT_NODES){
-					for(int k = 0; k < genome->getNodeKeys()->size(); k++){
-						if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
-							ConnectionGene* newConnection = new ConnectionGene();
-							newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
-							newConnection->inputId = j;
-							newConnection->outputId = k;
-							newConnection->weight = 1.0;
-							newConnection->enabled = true;
-							connectionInnov += 1;
+	genome->getNodeKeys()->push_back(GENOME_NUM_INPUT_NODES + j);
+	genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES + j, outputNode));
+}
+if(POPULATION_INITIALIZE_GENOMES_CONNECTED){
+	int connectionInnov = 1;
+	for(int j = 0; j < genome->getNodeKeys()->size(); j++){
+		// Don't initially connect bias node
+		if(j != GENOME_NUM_INPUT_NODES){
+			for(int k = 0; k < genome->getNodeKeys()->size(); k++){
+				if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
+					ConnectionGene* newConnection = new ConnectionGene();
+					newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
+					newConnection->inputId = j;
+					newConnection->outputId = k;
+					newConnection->weight = 1.0;
+					newConnection->enabled = true;
+					connectionInnov += 1;
 
-							genome->getConnectionKeys()->push_back(newConnection->innovation);
-							genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
-						}
-					}
+					genome->getConnectionKeys()->push_back(newConnection->innovation);
+					genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
 				}
 			}
 		}
-		organisms->push_back(genome);
+	}
+}
+organisms->push_back(genome);
 	}
 	innovationNumber = POPULATION_INITIALIZE_GENOMES_CONNECTED ? (GENOME_NUM_INPUT_NODES * GENOME_NUM_OUTPUT_NODES) + GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + 1 : GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + 1;
 }
@@ -140,7 +140,7 @@ void Population::speciatePopulation(){
 	for(int i = 0; i < organisms->size(); i++){
 		compatibleSpeciesFound = false;
 		for(int j = 0; j < speciesList->size(); j++){
-			if(calculateCompatibilityDistance(organisms->operator[](i), speciesList->operator[](j)->representative) < GENOME_COMPATIBILITY_THRESHOLD){
+			if(calculateCompatibilityDistance(organisms->operator[](i), speciesList->operator[](j)->representative) < Config::genomeCompatibilityThreshold){
 				speciesList->operator[](j)->members->push_back(organisms->operator[](i));
 				organisms->operator[](i)->setSpecies(j);
 				compatibleSpeciesFound = true;
@@ -163,6 +163,21 @@ void Population::speciatePopulation(){
 		}
 	}
 	removeEmptySpecies();
+}
+
+void Population::adjustGenomeCompatibilityThreshold(){
+	printf("GCT: %f\n", Config::genomeCompatibilityThreshold);
+	if(speciesList->size() == POPULATION_TARGET_SPECIES_NUMBER){
+		return;
+	}
+	else if(speciesList->size() < POPULATION_TARGET_SPECIES_NUMBER){
+		if(Config::genomeCompatibilityThreshold >= GENOME_COMPATIBILITY_THRESHOLD_PERTURBATION_AMOUNT){
+			Config::genomeCompatibilityThreshold -= GENOME_COMPATIBILITY_THRESHOLD_PERTURBATION_AMOUNT;
+		}
+	}
+	else{
+		Config::genomeCompatibilityThreshold += GENOME_COMPATIBILITY_THRESHOLD_PERTURBATION_AMOUNT;
+	}
 }
 
 void Population::calculateSpeciesFitnesses(){
@@ -359,6 +374,8 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			checkSpeciesStagnation();
 			//printf(" - Speciating population...\n");
 			speciatePopulation();
+
+			adjustGenomeCompatibilityThreshold();
 			//printf(" - Evaluating genomes...\n");
 			for(int j = 0; j < organisms->size(); j++){
 				evaluateGenome(evaluationFunction, organisms->operator[](j));

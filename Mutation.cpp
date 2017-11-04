@@ -133,7 +133,6 @@ void Mutation::perturbWeight(Genome* genome){
 	for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
 		if(((double)rand() / (double)RAND_MAX) < MUTATION_RATE_SWAP_WEIGHT_CONNECTION){
 			double swapWeight = 2.0 * (((double)rand() / (double)RAND_MAX) - 0.5) * CONNECTION_GENE_ABS_WEIGHT_CAP;
-			printf("\t\t\t\tWeight swapped from %f to %f\n", genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight, swapWeight);
 			genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = swapWeight;
 		}
 		if(((double)rand() / (double)RAND_MAX) < MUTATION_RATE_PERTURB_WEIGHT_CONNECTION){

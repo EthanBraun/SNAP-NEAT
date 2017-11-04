@@ -49,6 +49,7 @@ public:
 	void initializePopulation();
 	void checkSpeciesStagnation();
 	void speciatePopulation();
+	void adjustGenomeCompatibilityThreshold();
 	void calculateSpeciesFitnesses();
 	void calculateSpeciesSizeChanges();
 	void reducePopulation();
