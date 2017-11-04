@@ -24,7 +24,7 @@ void Mutation::mutate(Genome* genome, Population* population){
 			break;
 		case(ToggleNode):
 			if(r < MUTATION_RATE_TOGGLE_NODE){
-				Mutation::toggleNode(genome);
+Mutation::toggleNode(genome);
 			}
 			break;
 		case(ToggleConnection):
@@ -83,11 +83,11 @@ void Mutation::addNode(Genome* genome, Population* population){
 void Mutation::addConnection(Genome* genome, Population* population){
 	// Get random two random nodes (output cannot be of type input)
 	// Add new connection between them
-	
-	
+
+
 	int inputKey = rand() % genome->getNodeKeys()->size();
 	NodeGene* inputNodeGene = genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](inputKey));
-	
+
 	std::vector<int>* currentOutputKeys = new std::vector<int>();
 	for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
 		if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->inputId == inputNodeGene->innovation){
@@ -124,6 +124,12 @@ void Mutation::perturbWeight(Genome* genome){
 		if(((double)rand() / (double)RAND_MAX) < MUTATION_RATE_PERTURB_WEIGHT_CONNECTION){
 			perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
 			genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight += (CONNECTION_GENE_MAX_WEIGHT_PERTURBATION * perturbationPercent);
+			if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight > CONNECTION_GENE_ABS_WEIGHT_CAP){
+				genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = CONNECTION_GENE_ABS_WEIGHT_CAP;
+			}
+			else if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight < -CONNECTION_GENE_ABS_WEIGHT_CAP){
+				genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = -CONNECTION_GENE_ABS_WEIGHT_CAP;
+			}
 		}
 	}
 }
