@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-enum MutationType { AddNode, AddConnection, PerturbWeight, ToggleNode, ToggleConnection, End = ToggleConnection };
+enum MutationType { AddNode, AddConnection, PerturbWeight, ToggleNode, ToggleConnection, RemoveNode, RemoveConnection, End = RemoveConnection };
 enum GeneType { GeneTypeConnection, GeneTypeNode };
 
 struct Species{

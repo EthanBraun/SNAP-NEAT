@@ -9,27 +9,37 @@ void Mutation::mutate(Genome* genome, Population* population){
 		switch(i){
 		case(AddNode):
 			if(r < MUTATION_RATE_ADD_NODE){
-				Mutation::addNode(genome, population);
+				addNode(genome, population);
 			}
 			break;
 		case(AddConnection):
 			if(r < MUTATION_RATE_ADD_CONNECTION){
-				Mutation::addConnection(genome, population);
+				addConnection(genome, population);
 			}
 			break;
 		case(PerturbWeight):
 			if(r < MUTATION_RATE_PERTURB_WEIGHT_GENOME){
-				Mutation::perturbWeight(genome);
+				perturbWeight(genome);
 			}
 			break;
 		case(ToggleNode):
 			if(r < MUTATION_RATE_TOGGLE_NODE){
-Mutation::toggleNode(genome);
+				toggleNode(genome);
 			}
 			break;
 		case(ToggleConnection):
 			if(r < MUTATION_RATE_TOGGLE_CONNECTION){
-				Mutation::toggleConnection(genome);
+				toggleConnection(genome);
+			}
+			break;
+		case(RemoveNode):
+			if(r < MUTATION_RATE_REMOVE_NODE){
+				removeNode(genome);
+			}
+			break;
+		case(RemoveConnection):
+			if(r < MUTATION_RATE_REMOVE_CONNECTION){
+				removeConnection(genome);
 			}
 			break;
 		}
@@ -69,15 +79,15 @@ void Mutation::addNode(Genome* genome, Population* population){
 	outputConnectionGene->innovation = population->updateInnovations(AddNode, GeneTypeConnection, nodeGeneInnovation, currentConnectionGene->outputId);
 	outputConnectionGene->inputId = nodeGeneInnovation;
 	outputConnectionGene->outputId = currentConnectionGene->outputId;
-	outputConnectionGene->weight = currentConnectionGene->weight;
-	outputConnectionGene->enabled = true;
+outputConnectionGene->weight = currentConnectionGene->weight;
+outputConnectionGene->enabled = true;
 
-	genome->getConnectionKeys()->push_back(inputConnectionGene->innovation);
-	genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(inputConnectionGene->innovation, inputConnectionGene));
-	genome->getConnectionKeys()->push_back(outputConnectionGene->innovation);
-	genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(outputConnectionGene->innovation, outputConnectionGene));
+genome->getConnectionKeys()->push_back(inputConnectionGene->innovation);
+genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(inputConnectionGene->innovation, inputConnectionGene));
+genome->getConnectionKeys()->push_back(outputConnectionGene->innovation);
+genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(outputConnectionGene->innovation, outputConnectionGene));
 
-	currentConnectionGene->enabled = false;
+currentConnectionGene->enabled = false;
 }
 
 void Mutation::addConnection(Genome* genome, Population* population){
@@ -155,5 +165,59 @@ void Mutation::toggleConnection(Genome* genome){
 
 	int index = rand() % genome->getConnectionKeys()->size();
 	bool state = genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](index))->enabled;
-	genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](index))->enabled = !state; 
+	genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](index))->enabled = !state;
+}
+
+void Mutation::removeNode(Genome* genome){
+	// Get random hidden node
+	// Remove all connection genes to and from node
+	// Remove node gene from genome
+	if(genome->getHiddenNodeKeys()->size() == 0){
+		return;
+	}
+
+	int hiddenIndex = rand() % genome->getHiddenNodeKeys()->size();
+	int id = genome->getHiddenNodeKeys()->operator[](hiddenIndex);
+	int index;
+	for(int i = 0; i < genome->getNodeKeys()->size(); i++){
+		if(genome->getNodeKeys()->operator[](i) == id){
+			index = i;
+			break;
+		}
+	}
+	
+	for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
+		if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->inputId == id){
+			delete genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i));
+			genome->getConnectionGenes()->erase(genome->getConnectionKeys()->operator[](i));
+			genome->getConnectionKeys()->erase(genome->getConnectionKeys()->begin() + i);
+			i--;
+		}
+		else if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->outputId == id){
+			delete genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i));
+			genome->getConnectionGenes()->erase(genome->getConnectionKeys()->operator[](i));
+			genome->getConnectionKeys()->erase(genome->getConnectionKeys()->begin() + i);
+			i--;
+		}
+	}
+
+	delete genome->getNodeGenes()->operator[](id);
+	genome->getNodeGenes()->erase(id);
+	genome->getNodeKeys()->erase(genome->getNodeKeys()->begin() + index);
+	genome->getHiddenNodeKeys()->erase(genome->getHiddenNodeKeys()->begin() + hiddenIndex);
+}
+
+void Mutation::removeConnection(Genome* genome){
+	// Get random connection
+	// Remove connection gene from genome
+	if(genome->getConnectionKeys()->size() == 0){
+		return;
+	}
+
+	int index = rand() % genome->getConnectionKeys()->size();
+	int id = genome->getConnectionKeys()->operator[](index);
+	
+	delete genome->getConnectionGenes()->operator[](id);
+	genome->getConnectionGenes()->erase(id);
+	genome->getConnectionKeys()->erase(genome->getConnectionKeys()->begin() + index);
 }

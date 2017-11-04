@@ -5,9 +5,6 @@
 #include "Genome.h"
 #include "Population.h"
 
-//enum MutationType { AddNode, AddConnection, PerturbBias, PerturbWeight, ToggleNode, ToggleConnection, End = ToggleConnection };
-//enum GeneType { GeneTypeConnection, GeneTypeNode };
-
 class Mutation{
 public:
 	static void mutate(Genome*, Population*);
@@ -16,6 +13,8 @@ public:
 	static void perturbWeight(Genome*);
 	static void toggleNode(Genome*);
 	static void toggleConnection(Genome*);
+	static void removeNode(Genome*);
+	static void removeConnection(Genome*);
 };
 
 #endif
