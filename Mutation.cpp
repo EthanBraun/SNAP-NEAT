@@ -79,15 +79,15 @@ void Mutation::addNode(Genome* genome, Population* population){
 	outputConnectionGene->innovation = population->updateInnovations(AddNode, GeneTypeConnection, nodeGeneInnovation, currentConnectionGene->outputId);
 	outputConnectionGene->inputId = nodeGeneInnovation;
 	outputConnectionGene->outputId = currentConnectionGene->outputId;
-outputConnectionGene->weight = currentConnectionGene->weight;
-outputConnectionGene->enabled = true;
+	outputConnectionGene->weight = currentConnectionGene->weight;
+	outputConnectionGene->enabled = true;
 
-genome->getConnectionKeys()->push_back(inputConnectionGene->innovation);
-genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(inputConnectionGene->innovation, inputConnectionGene));
-genome->getConnectionKeys()->push_back(outputConnectionGene->innovation);
-genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(outputConnectionGene->innovation, outputConnectionGene));
+	genome->getConnectionKeys()->push_back(inputConnectionGene->innovation);
+	genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(inputConnectionGene->innovation, inputConnectionGene));
+	genome->getConnectionKeys()->push_back(outputConnectionGene->innovation);
+	genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(outputConnectionGene->innovation, outputConnectionGene));
 
-currentConnectionGene->enabled = false;
+	currentConnectionGene->enabled = false;
 }
 
 void Mutation::addConnection(Genome* genome, Population* population){
@@ -131,6 +131,11 @@ void Mutation::perturbWeight(Genome* genome){
 	// Perturb weights based on rate
 	double perturbationPercent;
 	for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
+		if(((double)rand() / (double)RAND_MAX) < MUTATION_RATE_SWAP_WEIGHT_CONNECTION){
+			double swapWeight = 2.0 * (((double)rand() / (double)RAND_MAX) - 0.5) * CONNECTION_GENE_ABS_WEIGHT_CAP;
+			printf("\t\t\t\tWeight swapped from %f to %f\n", genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight, swapWeight);
+			genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = swapWeight;
+		}
 		if(((double)rand() / (double)RAND_MAX) < MUTATION_RATE_PERTURB_WEIGHT_CONNECTION){
 			perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
 			genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight += (CONNECTION_GENE_MAX_WEIGHT_PERTURBATION * perturbationPercent);
