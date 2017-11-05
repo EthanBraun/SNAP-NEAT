@@ -12,6 +12,43 @@ Genome::Genome(){
 	sharedFitness = 0.0;
 }
 
+// Copy constructor
+Genome::Genome(Genome* parent){
+	hiddenNodeKeys = new std::vector<int>();
+	nodeKeys = new std::vector<int>();
+	connectionKeys = new std::vector<int>();
+	nodeGenes = new std::map<int, NodeGene*>();
+	connectionGenes = new std::map<int, ConnectionGene*>();
+	species = parent->getSpecies();
+	fitness = 0.0;
+	sharedFitness = 0.0;
+
+	for(int i = 0; i < parent->getHiddenNodeKeys()->size(); i++){
+		hiddenNodeKeys->push_back(parent->getHiddenNodeKeys()->operator[](i));
+	}
+	for(int i = 0; i < parent->getNodeKeys()->size(); i++){
+		nodeKeys->push_back(parent->getNodeKeys()->operator[](i));
+
+		NodeGene* newNode = new NodeGene();
+		newNode->innovation = parent->getNodeGenes()->operator[](parent->getNodeKeys()->operator[](i))->innovation;
+		newNode->type = parent->getNodeGenes()->operator[](parent->getNodeKeys()->operator[](i))->type;
+		newNode->enabled = parent->getNodeGenes()->operator[](parent->getNodeKeys()->operator[](i))->enabled;
+		nodeGenes->insert(std::pair<int, NodeGene*>(newNode->innovation, newNode));
+	}
+	for(int i = 0; i < parent->getConnectionKeys()->size(); i++){
+		connectionKeys->push_back(parent->getConnectionKeys()->operator[](i));
+
+		ConnectionGene* newConnection = new ConnectionGene();
+		newConnection->innovation = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->innovation;
+		newConnection->inputId = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->inputId;
+		newConnection->outputId = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->outputId;	
+		newConnection->weight = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->weight;
+		newConnection->enabled = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->enabled;
+		connectionGenes->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
+	}
+}
+
+// Crossover constructor
 Genome::Genome(Genome* parentA, Genome* parentB){
 	hiddenNodeKeys = new std::vector<int>();
 	nodeKeys = new std::vector<int>();

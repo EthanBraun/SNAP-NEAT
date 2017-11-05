@@ -33,6 +33,7 @@ private:
 	bool elite;
 public:
 	Genome();
+	Genome(Genome*);
 	Genome(Genome*, Genome*);
 	~Genome();
 

@@ -82,21 +82,18 @@ void Population::initializePopulation(){
 		if(POPULATION_INITIALIZE_GENOMES_CONNECTED){
 			int connectionInnov = 1;
 			for(int j = 0; j < genome->getNodeKeys()->size(); j++){
-				// Don't initially connect bias node
-				if(j != GENOME_NUM_INPUT_NODES){
-					for(int k = 0; k < genome->getNodeKeys()->size(); k++){
-						if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
-							ConnectionGene* newConnection = new ConnectionGene();
-							newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
-							newConnection->inputId = j;
-							newConnection->outputId = k;
-							newConnection->weight = 1.0;
-							newConnection->enabled = true;
-							connectionInnov += 1;
-
-							genome->getConnectionKeys()->push_back(newConnection->innovation);
-							genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
-						}
+				for(int k = 0; k < genome->getNodeKeys()->size(); k++){
+					if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
+						ConnectionGene* newConnection = new ConnectionGene();
+						newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
+						newConnection->inputId = j;
+						newConnection->outputId = k;
+						newConnection->weight = 1.0;
+						newConnection->enabled = true;
+						connectionInnov += 1;
+						
+						genome->getConnectionKeys()->push_back(newConnection->innovation);
+						genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
 					}
 				}
 			}
@@ -212,16 +209,16 @@ void Population::calculateSpeciesSizeChanges(){
 		currentSpecies->cullRate = (int)round(POPULATION_SPECIES_CULL_RATE * (double)currentSpecies->members->size());
 		cullSum += currentSpecies->cullRate;
 	}
-	printf("\n");
+	//printf("\n");
 	for(int i = 0; i < speciesList->size(); i++){
 		currentSpecies = speciesList->operator[](i);
 		tempSpawn = currentSpecies->members->size() != 0 ? (currentSpecies->averageFitness / speciesAverageFitnessSum) * cullSum : 0.0;
 		currentSpecies->spawnRate = (int)round(tempSpawn);
 		currentSpecies->spawnRate = currentSpecies->spawnRate >= 0 ? currentSpecies->spawnRate : 0;
-spawnSum += currentSpecies->spawnRate;
-printf("species %d size: %d\tavg. fitness: %f\tavg. fitness sum%f\n", i, (int)currentSpecies->members->size(), currentSpecies->averageFitness, speciesAverageFitnessSum);
+		spawnSum += currentSpecies->spawnRate;
+		//printf("species %d size: %d\tavg. fitness: %f\tavg. fitness sum%f\n", i, (int)currentSpecies->members->size(), currentSpecies->averageFitness, speciesAverageFitnessSum);
 	}
-	printf("\n");
+	//printf("\n");
 	while(cullSum != spawnSum){
 		for(int i = 0; i < speciesList->size(); i++){
 			if(cullSum > spawnSum){
@@ -245,8 +242,8 @@ printf("species %d size: %d\tavg. fitness: %f\tavg. fitness sum%f\n", i, (int)cu
 			}
 		}
 	}
-	printf("\n\t\t\t\t\t\tcullSum: %d\n", cullSum);
-	printf("\n\t\t\t\t\t\tspawnSum: %d\n", spawnSum);
+	//printf("\n\t\t\t\t\t\tcullSum: %d\n", cullSum);
+	//printf("\n\t\t\t\t\t\tspawnSum: %d\n", spawnSum);
 	if(organisms->size() != POPULATION_SIZE){
 		printf("\n\n\t\twHaT\n\n");
 		exit(1);
@@ -368,7 +365,12 @@ void Population::repopulate(){
 				} while(randB == randA);
 				parentB = speciesList->operator[](i)->members->operator[](randB);
 			}
-			newGenome = new Genome(parentA, parentB);
+			if(((double)rand() / (double)RAND_MAX) < POPULATION_CROSSOVER_RATE){
+				newGenome = new Genome(parentA, parentB);
+			}
+			else{
+				newGenome = parentA->getFitness() >= parentB->getFitness() ? new Genome(parentA) : new Genome(parentB);
+			}
 			newGenome->setId(updateGenomeId());
 			speciesList->operator[](i)->members->push_back(newGenome);
 			organisms->push_back(newGenome);

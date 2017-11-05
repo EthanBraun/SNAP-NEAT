@@ -20,15 +20,6 @@ void* fitnessFunction(Network* network, double* fitness){
 
 	for(int i = 0; i < 4; i++){
 		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
-		network->activate(inputs->operator[](i));
 		outputs->push_back(network->getOutputLayer()->operator[](network->getOutputLayerKeys()->operator[](0))->getActivation());
 		outputDifference = std::abs(desiredOutputs->operator[](i) - network->getOutputLayer()->operator[](network->getOutputLayerKeys()->operator[](0))->getActivation());
 		*fitness += (outputDifference <= 1.0) ? ((1.0 - outputDifference) / 4.0) : 0.0;
