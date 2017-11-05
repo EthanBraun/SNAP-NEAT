@@ -30,6 +30,7 @@ private:
 	int species;
 	double fitness;
 	double sharedFitness;
+	bool elite;
 public:
 	Genome();
 	Genome(Genome*, Genome*);
@@ -44,10 +45,12 @@ public:
 	int getSpecies();
 	double getFitness();
 	double getSharedFitness();
+	bool getElite();
 	void setId(long);
 	void setSpecies(int);
 	void setFitness(double);
 	void setSharedFitness(double);
+	void setElite(bool);
 	void printGenotype();
 	bool operator==(const Genome&);
 };

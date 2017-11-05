@@ -39,7 +39,7 @@ void Neuron::activate(){
 	for(int i = 0; i < inputs->size(); i++){
 		newActivation += (inputs->operator[](i)->from->getActivation()) * (inputs->operator[](i)->weight);
 	}
-	activation = sigmoid(newActivation);
+	activation = steepSigmoid(newActivation);
 }
 
 void Neuron::activateDirect(double input){

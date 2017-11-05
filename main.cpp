@@ -15,10 +15,19 @@ void* fitnessFunction(Network* network, double* fitness){
 		inputs->push_back(new std::vector<double>());
 		inputs->operator[](i)->push_back((i < 2) ? 0.0 : 1.0);
 		inputs->operator[](i)->push_back((double)(i % 2));
-		desiredOutputs->push_back(i == 3 ? 0.0 : 1.0);
+		desiredOutputs->push_back((i == 0 || i == 3) ? 0.0 : 1.0);
 	}
 
 	for(int i = 0; i < 4; i++){
+		network->activate(inputs->operator[](i));
+		network->activate(inputs->operator[](i));
+		network->activate(inputs->operator[](i));
+		network->activate(inputs->operator[](i));
+		network->activate(inputs->operator[](i));
+		network->activate(inputs->operator[](i));
+		network->activate(inputs->operator[](i));
+		network->activate(inputs->operator[](i));
+		network->activate(inputs->operator[](i));
 		network->activate(inputs->operator[](i));
 		outputs->push_back(network->getOutputLayer()->operator[](network->getOutputLayerKeys()->operator[](0))->getActivation());
 		outputDifference = std::abs(desiredOutputs->operator[](i) - network->getOutputLayer()->operator[](network->getOutputLayerKeys()->operator[](0))->getActivation());
@@ -34,7 +43,7 @@ void* fitnessFunction(Network* network, double* fitness){
 		printf("\n");
 		for(int i = 0; i < 4; i++){
 			network->activate(inputs->operator[](i));
-			printf("\t%f NAND %f ~= %f\n", inputs->operator[](i)->operator[](0), inputs->operator[](i)->operator[](1), outputs->operator[](i));
+			printf("\t%f XOR %f ~= %f\n", inputs->operator[](i)->operator[](0), inputs->operator[](i)->operator[](1), outputs->operator[](i));
 		}
 	}
 

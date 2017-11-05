@@ -3,6 +3,11 @@
 
 void Mutation::mutate(Genome* genome, Population* population){
 	double r;
+
+	if(genome->getElite()){
+		return;
+	}
+
 	for(int i = 0; i <= End; i++){
 		r = ((double)rand() / (double)RAND_MAX);
 

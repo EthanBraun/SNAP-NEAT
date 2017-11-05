@@ -53,6 +53,7 @@ public:
 	void calculateSpeciesFitnesses();
 	void calculateSpeciesSizeChanges();
 	void reducePopulation();
+	void updateElites();
 	void repopulate();
 	void removeEmptySpecies();
 	void setSpeciesReps();

@@ -159,6 +159,10 @@ double Genome::getSharedFitness(){
 	return sharedFitness;
 }
 
+bool Genome::getElite(){
+	return elite;
+}
+
 void Genome::setId(long idVal){
 	id = idVal;
 }
@@ -173,6 +177,10 @@ void Genome::setFitness(double fitnessVal){
 
 void Genome::setSharedFitness(double sharedFitnessVal){
 	sharedFitness = sharedFitnessVal;
+}
+
+void Genome::setElite(bool eliteVal){
+	elite = eliteVal;
 }
 
 void Genome::printGenotype(){

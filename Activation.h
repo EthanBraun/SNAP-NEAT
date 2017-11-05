@@ -4,5 +4,6 @@
 #include <cmath>
 
 double sigmoid(double);
+double steepSigmoid(double);
 
 #endif
