@@ -596,15 +596,15 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	int currentNodeKeyIndexB = 0;
 	int maxNodeKeyIndexA = a->getNodeKeys()->size() - 1;
 	int maxNodeKeyIndexB = b->getNodeKeys()->size() - 1;
-	int currentNodeKeyA = 0;
-	int currentNodeKeyB = 0;
+	long currentNodeKeyA = 0;
+	long currentNodeKeyB = 0;
 
 	while(true){
 		if((currentNodeKeyIndexA > maxNodeKeyIndexA) && (currentNodeKeyIndexB > maxNodeKeyIndexB)){
 			break;
 		}
-		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? a->getNodeKeys()->operator[](currentNodeKeyIndexA) : INT_MAX;
-		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? b->getNodeKeys()->operator[](currentNodeKeyIndexB) : INT_MAX;
+		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? a->getNodeKeys()->operator[](currentNodeKeyIndexA) : LONG_MAX;
+		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? b->getNodeKeys()->operator[](currentNodeKeyIndexB) : LONG_MAX;
 
 		if(currentNodeKeyA == currentNodeKeyB){
 			currentNodeKeyIndexA++;
@@ -634,18 +634,18 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	int currentConnectionKeyIndexB = 0;
 	int maxConnectionKeyIndexA = a->getConnectionKeys()->size() - 1;
 	int maxConnectionKeyIndexB = b->getConnectionKeys()->size() - 1;
-	int currentConnectionKeyA = 0;
-	int currentConnectionKeyB = 0;
+	long currentConnectionKeyA = 0;
+	long currentConnectionKeyB = 0;
 
 	if(!(a->getConnectionKeys()->size() == 0 && b->getConnectionKeys()->size() == 0)){
 		while(true){
 			if((currentConnectionKeyIndexA > maxConnectionKeyIndexA) && (currentConnectionKeyIndexB > maxConnectionKeyIndexB)){
 				break;
 			}
-			currentConnectionKeyA = currentConnectionKeyIndexA <= maxConnectionKeyIndexA ? a->getConnectionKeys()->operator[](currentConnectionKeyIndexA) : INT_MAX;
-			currentConnectionKeyB = currentConnectionKeyIndexB <= maxConnectionKeyIndexB ? b->getConnectionKeys()->operator[](currentConnectionKeyIndexB) : INT_MAX;
+			currentConnectionKeyA = currentConnectionKeyIndexA <= maxConnectionKeyIndexA ? a->getConnectionKeys()->operator[](currentConnectionKeyIndexA) : LONG_MAX;
+			currentConnectionKeyB = currentConnectionKeyIndexB <= maxConnectionKeyIndexB ? b->getConnectionKeys()->operator[](currentConnectionKeyIndexB) : LONG_MAX;
 
-			if(currentConnectionKeyA == currentConnectionKeyB){
+			if(currentConnectionKeyA == currentConnectionKeyB && currentConnectionKeyA != LONG_MAX && currentConnectionKeyB != LONG_MAX){
 				matchingConnectionGeneCount++;
 				matchingConnectionGeneWeightDifferenceSum += std::abs(a->getConnectionGenes()->operator[](currentConnectionKeyA)->weight - b->getConnectionGenes()->operator[](currentConnectionKeyB)->weight);
 				currentConnectionKeyIndexA++;
