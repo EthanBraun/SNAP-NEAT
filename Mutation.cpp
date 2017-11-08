@@ -99,7 +99,6 @@ void Mutation::addConnection(Genome* genome, Population* population){
 	// Get random two random nodes (output cannot be of type input)
 	// Add new connection between them
 
-
 	int inputKey = rand() % genome->getNodeKeys()->size();
 	NodeGene* inputNodeGene = genome->getNodeGenes()->operator[](genome->getNodeKeys()->operator[](inputKey));
 

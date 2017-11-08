@@ -28,6 +28,19 @@ Population::~Population(){
 	delete innovations;
 }
 
+void Population::resetPopulation(){
+	genomeId = 0;
+	innovationNumber = 0;
+	for(int i = 0; i < innovations->size(); i++){
+		delete innovations->operator[](i);
+	}
+	
+	for(int i = 0; i < organisms->size(); i++){
+		delete organisms->operator[](i);
+	}
+	organisms->clear();
+}
+
 long Population::updateGenomeId(){
 	long currentGenomeId = genomeId;
 	genomeId++;
@@ -49,7 +62,10 @@ int Population::updateInnovations(MutationType mType, GeneType gType, int input,
 	newInnovation->outputId = output;
 	innovations->push_back(newInnovation);
 	innovationNumber += 1;
-	//printf("\t\t\tINNOVATION NUMBER IS %d\n", innovationNumber);
+	if(innovationNumber < 0){
+		printf("Innovation overflow\n");
+		exit(1);
+	}
 
 	return newInnovation->innovationNumber;
 }
@@ -227,16 +243,13 @@ void Population::calculateSpeciesSizeChanges(){
 		currentSpecies->cullRate = (int)round(POPULATION_SPECIES_CULL_RATE * (double)currentSpecies->members->size());
 		cullSum += currentSpecies->cullRate;
 	}
-	//printf("\n");
 	for(int i = 0; i < speciesList->size(); i++){
 		currentSpecies = speciesList->operator[](i);
 		tempSpawn = currentSpecies->members->size() != 0 ? (currentSpecies->averageFitness / speciesAverageFitnessSum) * cullSum : 0.0;
 		currentSpecies->spawnRate = (int)round(tempSpawn);
 		currentSpecies->spawnRate = currentSpecies->spawnRate >= 0 ? currentSpecies->spawnRate : 0;
 		spawnSum += currentSpecies->spawnRate;
-		//printf("species %d size: %d\tavg. fitness: %f\tavg. fitness sum%f\n", i, (int)currentSpecies->members->size(), currentSpecies->averageFitness, speciesAverageFitnessSum);
 	}
-	//printf("\n");
 	while(cullSum != spawnSum){
 		for(int i = 0; i < speciesList->size(); i++){
 			if(cullSum > spawnSum){
@@ -259,12 +272,6 @@ void Population::calculateSpeciesSizeChanges(){
 				break;
 			}
 		}
-	}
-	//printf("\n\t\t\t\t\t\tcullSum: %d\n", cullSum);
-	//printf("\n\t\t\t\t\t\tspawnSum: %d\n", spawnSum);
-	if(organisms->size() != POPULATION_SIZE){
-		printf("\n\n\t\twHaT\n\n");
-		exit(1);
 	}
 }
 
@@ -520,10 +527,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			//printf(" - Setting species representatives...\n\n");
 			setSpeciesReps();
 		}
-		for(int i = 0; i < organisms->size(); i++){
-			delete organisms->operator[](i);
-		}
-		organisms->clear();
+		resetPopulation();
 	} while(RESET_AT_MAX_GENERATION && !endEvaluation);
 }
 

@@ -42,6 +42,7 @@ public:
 	Population();
 	~Population();
 
+	void resetPopulation();
 	long updateGenomeId();
 	int updateInnovations(MutationType, GeneType, int, int);
 	std::vector<Genome*>* getOrganisms();
