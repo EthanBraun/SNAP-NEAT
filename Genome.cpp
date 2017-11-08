@@ -1,5 +1,6 @@
 #include "Genome.h"
 #include "Population.h"
+#include <limits.h>
 
 Genome::Genome(){
 	hiddenNodeKeys = new std::vector<int>();
@@ -66,15 +67,15 @@ Genome::Genome(Genome* parentA, Genome* parentB){
 	int currentNodeKeyIndexB = 0;
 	int maxNodeKeyIndexA = parentA->getNodeKeys()->size() - 1;
 	int maxNodeKeyIndexB = parentB->getNodeKeys()->size() - 1;
-	int currentNodeKeyA = 0;
-	int currentNodeKeyB = 0;
+	long currentNodeKeyA = 0;
+	long currentNodeKeyB = 0;
 
 	while(true){
 		if((currentNodeKeyIndexA > maxNodeKeyIndexA) && (currentNodeKeyIndexB > maxNodeKeyIndexB)){
 			break;
 		}
-		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? parentA->getNodeKeys()->operator[](currentNodeKeyIndexA) : 1000000;
-		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? parentB->getNodeKeys()->operator[](currentNodeKeyIndexB) : 1000000;
+		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? parentA->getNodeKeys()->operator[](currentNodeKeyIndexA) : LONG_MAX;
+		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? parentB->getNodeKeys()->operator[](currentNodeKeyIndexB) : LONG_MAX;
 
 		if(currentNodeKeyA == currentNodeKeyB){
 			Population::copyNodeGeneBernoulli(this, parentA->getNodeGenes()->operator[](currentNodeKeyA), parentB->getNodeGenes()->operator[](currentNodeKeyB), currentNodeKeyA);
@@ -105,15 +106,15 @@ Genome::Genome(Genome* parentA, Genome* parentB){
 	int currentConnectionKeyIndexB = 0;
 	int maxConnectionKeyIndexA = parentA->getConnectionKeys()->size() - 1;
 	int maxConnectionKeyIndexB = parentB->getConnectionKeys()->size() - 1;
-	int currentConnectionKeyA = 0;
-	int currentConnectionKeyB = 0;
+	long currentConnectionKeyA = 0;
+	long currentConnectionKeyB = 0;
 
 	while(true){
 		if((currentConnectionKeyIndexA > maxConnectionKeyIndexA) && (currentConnectionKeyIndexB > maxConnectionKeyIndexB)){
 			break;
 		}
-		currentConnectionKeyA = currentConnectionKeyIndexA <= maxConnectionKeyIndexA ? parentA->getConnectionKeys()->operator[](currentConnectionKeyIndexA) : 100000;
-		currentConnectionKeyB = currentConnectionKeyIndexB <= maxConnectionKeyIndexB ? parentB->getConnectionKeys()->operator[](currentConnectionKeyIndexB) : 100000;
+		currentConnectionKeyA = currentConnectionKeyIndexA <= maxConnectionKeyIndexA ? parentA->getConnectionKeys()->operator[](currentConnectionKeyIndexA) : LONG_MAX;
+		currentConnectionKeyB = currentConnectionKeyIndexB <= maxConnectionKeyIndexB ? parentB->getConnectionKeys()->operator[](currentConnectionKeyIndexB) : LONG_MAX;
 
 		if(currentConnectionKeyA == currentConnectionKeyB){
 			Population::copyConnectionGeneBernoulli(this, parentA->getConnectionGenes()->operator[](currentConnectionKeyA), parentB->getConnectionGenes()->operator[](currentConnectionKeyB), currentConnectionKeyA);
