@@ -610,7 +610,7 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 			currentNodeKeyIndexA++;
 			currentNodeKeyIndexB++;
 		}
-		else if((currentNodeKeyA < currentNodeKeyB) || (currentNodeKeyB == -1)){
+		else if(currentNodeKeyA < currentNodeKeyB){
 			if((maxNodeKeyIndexB != -1) && (currentNodeKeyA < b->getNodeKeys()->operator[](maxNodeKeyIndexB))){
 				disjointGenes++;
 			}
@@ -619,7 +619,7 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 			}
 			currentNodeKeyIndexA++;
 		}
-		else if((currentNodeKeyA > currentNodeKeyB) || (currentNodeKeyA == -1)){
+		else if(currentNodeKeyA > currentNodeKeyB){
 			if((maxNodeKeyIndexA != -1) && (currentNodeKeyB < a->getNodeKeys()->operator[](maxNodeKeyIndexA))){
 				disjointGenes++;
 			}
