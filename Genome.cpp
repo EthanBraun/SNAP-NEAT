@@ -10,6 +10,7 @@ Genome::Genome(){
 	species = -1;
 	fitness = 0.0;
 	sharedFitness = 0.0;
+	elite = false;
 }
 
 // Copy constructor
@@ -22,6 +23,7 @@ Genome::Genome(Genome* parent){
 	species = parent->getSpecies();
 	fitness = 0.0;
 	sharedFitness = 0.0;
+	elite = false;
 
 	for(int i = 0; i < parent->getHiddenNodeKeys()->size(); i++){
 		hiddenNodeKeys->push_back(parent->getHiddenNodeKeys()->operator[](i));
@@ -58,6 +60,7 @@ Genome::Genome(Genome* parentA, Genome* parentB){
 	species = (rand() % 2) == 0 ? parentA->getSpecies() : parentB->getSpecies();
 	fitness = 0.0;
 	sharedFitness = 0.0;
+	elite = false;
 
 	int currentNodeKeyIndexA = 0;
 	int currentNodeKeyIndexB = 0;
@@ -140,13 +143,21 @@ Genome::Genome(Genome* parentA, Genome* parentB){
 
 Genome::~Genome(){
 	//printf("Freeing individual node genes\n");
-	for(int i = 0; i < nodeKeys->size(); i++){
-		delete nodeGenes->operator[](nodeKeys->operator[](i));
-	}
+	//for(int i = 0; i < nodeKeys->size(); i++){
+	//	delete nodeGenes->operator[](nodeKeys->operator[](i));
+	//}
 	//printf("Freeing individual connection genes\n");
-	for(int i = 0; i < connectionKeys->size(); i++){
-		delete connectionGenes->operator[](connectionKeys->operator[](i));
+	//for(int i = 0; i < connectionKeys->size(); i++){
+	//	delete connectionGenes->operator[](connectionKeys->operator[](i));
+	//}
+	for(std::map<int, NodeGene*>::iterator itr = nodeGenes->begin(); itr != nodeGenes->end(); itr++){
+		delete itr->second;
 	}
+
+	for(std::map<int, ConnectionGene*>::iterator itr = connectionGenes->begin(); itr != connectionGenes->end(); itr++){
+		delete itr->second;
+	}
+
 
 	//printf("Freeing hiddenNodeKeys\n");
 	delete hiddenNodeKeys;
@@ -237,7 +248,7 @@ void Genome::printGenotype(){
 		printf("\tconnectionGenes[%d]->enabled: %d\n\n", connectionKeys->operator[](i), connectionGenes->operator[](connectionKeys->operator[](i))->enabled);
 	}
 	fflush(stdout);
-	exit(420);
+	//exit(420);
 }
 
 bool Genome::operator==(const Genome& rhs){

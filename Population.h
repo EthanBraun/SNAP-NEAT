@@ -39,7 +39,8 @@ private:
 	std::vector<Innovation*>* innovations;
 
 public:
-    Population();
+	Population();
+	~Population();
 
 	long updateGenomeId();
 	int updateInnovations(MutationType, GeneType, int, int);
@@ -58,7 +59,7 @@ public:
 	void removeEmptySpecies();
 	void setSpeciesReps();
 	void evaluatePopulation(void* evaluationFunction(Network* network, double* fitness));
-	void evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome*);
+	bool evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome*);
 	void printPopulationStats();
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
 	double calculateCompatibilityDistance(Genome*, Genome*);

@@ -10,6 +10,24 @@ Population::Population(){
 	innovations = new std::vector<Innovation*>();
 }	
 
+Population::~Population(){
+	for(int i = 0 ; i < organisms->size(); i++){
+		delete organisms->operator[](i);
+	}
+	for(int i = 0 ; i < speciesList->size(); i++){
+		delete speciesList->operator[](i)->members;
+		speciesList->operator[](i)->representative = NULL;
+		delete speciesList->operator[](i);
+	}
+	for(int i = 0 ; i < innovations->size(); i++){
+		delete innovations->operator[](i);
+	}
+
+	delete organisms;
+	delete speciesList;
+	delete innovations;
+}
+
 long Population::updateGenomeId(){
 	long currentGenomeId = genomeId;
 	genomeId++;
@@ -307,6 +325,7 @@ void Population::reducePopulation(){
 	delete cullList;
 }
 
+/*
 void Population::updateElites(){
 	Genome* elite;
 	Species* currentSpecies;
@@ -323,6 +342,31 @@ void Population::updateElites(){
 				else if(currentSpecies->members->operator[](j)->getFitness() > elite->getFitness()){
 					elite = currentSpecies->members->operator[](j);
 				}
+				currentSpecies->members->operator[](j)->setElite(false);
+			}
+			elite->setElite(true);
+		}
+		else{
+			for(int j = 0; j < currentSpecies->members->size(); j++){
+				currentSpecies->members->operator[](j)->setElite(false);
+			}
+		}
+	}
+}
+*/
+
+void Population::updateElites(){
+	Genome* elite;
+	Species* currentSpecies;
+
+	for(int i = 0; i < speciesList->size(); i++){
+		currentSpecies = speciesList->operator[](i);
+		if(currentSpecies->members->size() >= round(POPULATION_SPECIES_CULL_RATE * POPULATION_SPECIES_SIZE_FOR_ELITISM)){
+			elite = currentSpecies->members->operator[](0);
+			for(int j = 0; j < currentSpecies->members->size(); j++){
+				if(currentSpecies->members->operator[](j)->getFitness() > elite->getFitness()){
+					elite = currentSpecies->members->operator[](j);
+				}	
 				currentSpecies->members->operator[](j)->setElite(false);
 			}
 			elite->setElite(true);
@@ -395,6 +439,7 @@ void Population::removeEmptySpecies(){
 				printf("Deleting species %d\n", i);
 			}
 			delete speciesList->operator[](i)->members;
+			speciesList->operator[](i)->representative = NULL;
 			delete speciesList->operator[](i);
 			speciesList->erase(speciesList->begin() + i);
 			i--;
@@ -422,6 +467,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 	//		Cull organisms with low fitness
 	//		Reproduce to full population and mutate
 	//		Randomly select representative genomes for each species
+	bool endEvaluation = false;
 
 	do{
 		initializePopulation();
@@ -444,7 +490,12 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			adjustGenomeCompatibilityThreshold();
 			//printf(" - Evaluating genomes...\n");
 			for(int j = 0; j < organisms->size(); j++){
-				evaluateGenome(evaluationFunction, organisms->operator[](j));
+				if(evaluateGenome(evaluationFunction, organisms->operator[](j))){
+					endEvaluation = true;
+				}
+			}
+			if(endEvaluation){
+				break;
 			}
 			//printf(" - Calculating species average fitnesses...\n");
 			calculateSpeciesFitnesses();
@@ -473,7 +524,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			delete organisms->operator[](i);
 		}
 		organisms->clear();
-	} while(RESET_AT_MAX_GENERATION);
+	} while(RESET_AT_MAX_GENERATION && !endEvaluation);
 }
 
 void Population::printPopulationStats(){
@@ -497,7 +548,7 @@ void Population::printPopulationStats(){
 	}
 }
 
-void Population::evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome* currentGenome){
+bool Population::evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome* currentGenome){
 	Network* phenotype = new Network(currentGenome);
 	double fit = 0.0;
 	evaluationFunction(phenotype, &fit);
@@ -518,12 +569,15 @@ void Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 	}
 
 	if(currentGenome->getFitness() >= POPULATION_MAX_GENOME_FITNESS){
-		printf("\nGenome %ld exceeds max fitness %f with %f\n", currentGenome->getId(), POPULATION_MAX_GENOME_FITNESS, currentGenome->getFitness());
-		printf("\t\tPOPULATION GENOME ID -- LONG_MAX: %ld -- %ld\n", genomeId, LONG_MAX);
+		//printf("\nGenome %ld exceeds max fitness %f with %f\n", currentGenome->getId(), POPULATION_MAX_GENOME_FITNESS, currentGenome->getFitness());
+		//printf("\t\tPOPULATION GENOME ID -- LONG_MAX: %ld -- %ld\n", genomeId, LONG_MAX);
 		currentGenome->printGenotype();
+		delete phenotype;
+		return true;
 	}
 	delete phenotype;
 	phenotype = NULL;
+	return false;
 }
 
 bool Population::_innovationEqual(Innovation* innovation, MutationType mType, GeneType gType, int input, int output){
