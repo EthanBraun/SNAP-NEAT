@@ -45,7 +45,7 @@ void* fitnessFunction(Network* network, double* fitness){
 	delete desiredOutputs;
 	inputs = NULL;
 	desiredOutputs = NULL;
-	network = NULL;
+	//network = NULL;
 
 	delete outputs;
 	outputs = NULL;
@@ -56,5 +56,7 @@ int main(int argc, char *argv[]){
 	Population* pop = new Population();
 	pop->evaluatePopulation(fitnessFunction);
 	delete pop;
+	pop = NULL;
+	printf("GOT HERE\n");
 	return 0;
 }

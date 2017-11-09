@@ -34,10 +34,16 @@ void Population::resetPopulation(){
 	for(int i = 0; i < innovations->size(); i++){
 		delete innovations->operator[](i);
 	}
-	
+	for(int i = 0; i < speciesList->size(); i++){
+		delete speciesList->operator[](i)->members;
+		speciesList->operator[](i)->representative = NULL;
+		delete speciesList->operator[](i);
+	}	
 	for(int i = 0; i < organisms->size(); i++){
 		delete organisms->operator[](i);
 	}
+	innovations->clear();
+	speciesList->clear();
 	organisms->clear();
 }
 
@@ -499,6 +505,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			for(int j = 0; j < organisms->size(); j++){
 				if(evaluateGenome(evaluationFunction, organisms->operator[](j))){
 					endEvaluation = true;
+					break;
 				}
 			}
 			if(endEvaluation){
@@ -603,10 +610,7 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	long currentNodeKeyA = 0;
 	long currentNodeKeyB = 0;
 
-	while(true){
-		if((currentNodeKeyIndexA > maxNodeKeyIndexA) && (currentNodeKeyIndexB > maxNodeKeyIndexB)){
-			break;
-		}
+	while((currentNodeKeyIndexA <= maxNodeKeyIndexA) || (currentNodeKeyIndexB <= maxNodeKeyIndexB)){
 		currentNodeKeyA = currentNodeKeyIndexA <= maxNodeKeyIndexA ? a->getNodeKeys()->operator[](currentNodeKeyIndexA) : LONG_MAX;
 		currentNodeKeyB = currentNodeKeyIndexB <= maxNodeKeyIndexB ? b->getNodeKeys()->operator[](currentNodeKeyIndexB) : LONG_MAX;
 
@@ -642,15 +646,13 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 	long currentConnectionKeyB = 0;
 
 	if(!(a->getConnectionKeys()->size() == 0 && b->getConnectionKeys()->size() == 0)){
-		while(true){
-			if((currentConnectionKeyIndexA > maxConnectionKeyIndexA) && (currentConnectionKeyIndexB > maxConnectionKeyIndexB)){
-				break;
-			}
+		while((currentConnectionKeyIndexA <= maxConnectionKeyIndexA) || (currentConnectionKeyIndexB <= maxConnectionKeyIndexB)){
 			currentConnectionKeyA = currentConnectionKeyIndexA <= maxConnectionKeyIndexA ? a->getConnectionKeys()->operator[](currentConnectionKeyIndexA) : LONG_MAX;
 			currentConnectionKeyB = currentConnectionKeyIndexB <= maxConnectionKeyIndexB ? b->getConnectionKeys()->operator[](currentConnectionKeyIndexB) : LONG_MAX;
 
+
 			if(currentConnectionKeyA == currentConnectionKeyB && currentConnectionKeyA != LONG_MAX && currentConnectionKeyB != LONG_MAX){
-				matchingConnectionGeneCount++;
+				matchingConnectionGeneCount++;		
 				matchingConnectionGeneWeightDifferenceSum += std::abs(a->getConnectionGenes()->operator[](currentConnectionKeyA)->weight - b->getConnectionGenes()->operator[](currentConnectionKeyB)->weight);
 				currentConnectionKeyIndexA++;
 				currentConnectionKeyIndexB++;
@@ -740,7 +742,23 @@ void Population::copyConnectionGeneBernoulli(Genome* genome, ConnectionGene* gen
 	newConnectionGene->weight = sourceConnectionGene->weight;
 	newConnectionGene->enabled = sourceConnectionGene->enabled;
 
-	genome->getConnectionKeys()->push_back(innov);
+	//genome->getConnectionKeys()->push_back(innov);
+	if(genome->getConnectionKeys()->size() == 0 || innov > genome->getConnectionKeys()->operator[](genome->getConnectionKeys()->size() - 1)){
+		genome->getConnectionKeys()->push_back(innov);
+	}
+	else{
+		for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
+			if(innov < genome->getConnectionKeys()->operator[](i)){
+				genome->getConnectionKeys()->insert(genome->getConnectionKeys()->begin() + i, innov);
+				break;
+			}
+			else if(innov == genome->getConnectionKeys()->operator[](i)){
+				// Gene already exists, return
+				delete newConnectionGene;
+				return;
+			}
+		}
+	}
 	genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(innov, newConnectionGene));
 }
 
@@ -755,7 +773,23 @@ void Population::copyConnectionGeneBernoulli(Genome* genome, ConnectionGene* gen
 		newConnectionGene->weight = gene->weight;
 		newConnectionGene->enabled = gene->enabled;
 
-		genome->getConnectionKeys()->push_back(innov);
+		//genome->getConnectionKeys()->push_back(innov);
+		if(genome->getConnectionKeys()->size() == 0 || innov > genome->getConnectionKeys()->operator[](genome->getConnectionKeys()->size() - 1)){
+			genome->getConnectionKeys()->push_back(innov);
+		}
+		else{
+			for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
+				if(innov < genome->getConnectionKeys()->operator[](i)){
+					genome->getConnectionKeys()->insert(genome->getConnectionKeys()->begin() + i, innov);
+					break;
+				}
+				else if(innov == genome->getConnectionKeys()->operator[](i)){
+					// Gene already exists, return
+					delete newConnectionGene;
+					return;
+				}
+			}
+		}
 		genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(innov, newConnectionGene));
 	}
 }
@@ -770,6 +804,22 @@ void Population::copyConnectionGene(Genome* genome, ConnectionGene* gene, int in
 	newConnectionGene->enabled = gene->enabled;
 
 
-	genome->getConnectionKeys()->push_back(innov);
+	//genome->getConnectionKeys()->push_back(innov);
+	if(genome->getConnectionKeys()->size() == 0 || innov > genome->getConnectionKeys()->operator[](genome->getConnectionKeys()->size() - 1)){
+		genome->getConnectionKeys()->push_back(innov);
+	}
+	else{
+		for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
+			if(innov < genome->getConnectionKeys()->operator[](i)){
+				genome->getConnectionKeys()->insert(genome->getConnectionKeys()->begin() + i, innov);
+				break;
+			}
+			else if(innov == genome->getConnectionKeys()->operator[](i)){
+				// Gene already exists, return
+				delete newConnectionGene;
+				return;
+			}
+		}
+	}
 	genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(innov, newConnectionGene));
 }

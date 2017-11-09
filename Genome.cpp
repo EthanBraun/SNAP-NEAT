@@ -44,7 +44,7 @@ Genome::Genome(Genome* parent){
 		ConnectionGene* newConnection = new ConnectionGene();
 		newConnection->innovation = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->innovation;
 		newConnection->inputId = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->inputId;
-		newConnection->outputId = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->outputId;	
+		newConnection->outputId = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->outputId;
 		newConnection->weight = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->weight;
 		newConnection->enabled = parent->getConnectionGenes()->operator[](parent->getConnectionKeys()->operator[](i))->enabled;
 		connectionGenes->insert(std::pair<int, ConnectionGene*>(newConnection->innovation, newConnection));
@@ -143,14 +143,6 @@ Genome::Genome(Genome* parentA, Genome* parentB){
 }
 
 Genome::~Genome(){
-	//printf("Freeing individual node genes\n");
-	//for(int i = 0; i < nodeKeys->size(); i++){
-	//	delete nodeGenes->operator[](nodeKeys->operator[](i));
-	//}
-	//printf("Freeing individual connection genes\n");
-	//for(int i = 0; i < connectionKeys->size(); i++){
-	//	delete connectionGenes->operator[](connectionKeys->operator[](i));
-	//}
 	for(std::map<int, NodeGene*>::iterator itr = nodeGenes->begin(); itr != nodeGenes->end(); itr++){
 		delete itr->second;
 	}
@@ -249,7 +241,6 @@ void Genome::printGenotype(){
 		printf("\tconnectionGenes[%d]->enabled: %d\n\n", connectionKeys->operator[](i), connectionGenes->operator[](connectionKeys->operator[](i))->enabled);
 	}
 	fflush(stdout);
-	//exit(420);
 }
 
 bool Genome::operator==(const Genome& rhs){
