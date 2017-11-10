@@ -10,7 +10,7 @@ public:
 	static void mutate(Genome*, Population*);
 	static void addNode(Genome*, Population*);
 	static void addConnection(Genome*, Population*);
-	static void perturbWeight(Genome*);
+	static void perturbWeight(Genome*, Population*);
 	static void toggleNode(Genome*);
 	static void toggleConnection(Genome*);
 	static void removeNode(Genome*);

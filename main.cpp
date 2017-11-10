@@ -25,6 +25,7 @@ void* fitnessFunction(Network* network, double* fitness){
 		*fitness += (outputDifference <= 1.0) ? ((1.0 - outputDifference) / 4.0) : 0.0;
 	}
 
+	// Max genome fitness is not mutable at runtime so macro is fine
 	if((*fitness) >= POPULATION_MAX_GENOME_FITNESS){
 		printf("\nDANK NET DETECTED:   (fitness -- %f)\n", (*fitness));
 		for(int i = 0; i < 4; i++){
@@ -53,10 +54,11 @@ void* fitnessFunction(Network* network, double* fitness){
 
 int main(int argc, char *argv[]){
 	srand(time(NULL));
-	Population* pop = new Population();
+	Config* config = new Config();
+	initializeDefaultConfig(config);
+	Population* pop = new Population(config);
 	pop->evaluatePopulation(fitnessFunction);
 	delete pop;
-	pop = NULL;
-	printf("GOT HERE\n");
+	delete config;
 	return 0;
 }

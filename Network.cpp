@@ -155,6 +155,7 @@ void Network::activate(std::vector<double>* inputs){
 }
 
 void Network::compileOutputs(std::vector<double>* outputs){
+	// Num output nodes is not mutable at runtime so macro is fine
 	for(int i = 0; i < GENOME_NUM_OUTPUT_NODES; i++){
 		outputs->push_back(outputLayer->operator[](outputLayerKeys->operator[](i))->getActivation());
 	}

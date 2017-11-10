@@ -13,37 +13,37 @@ void Mutation::mutate(Genome* genome, Population* population){
 
 		switch(i){
 		case(AddNode):
-			if(r < MUTATION_RATE_ADD_NODE){
+			if(r < population->getConfig()->mutationRateAddNode){
 				addNode(genome, population);
 			}
 			break;
 		case(AddConnection):
-			if(r < MUTATION_RATE_ADD_CONNECTION){
+			if(r < population->getConfig()->mutationRateAddConnection){
 				addConnection(genome, population);
 			}
 			break;
 		case(PerturbWeight):
-			if(r < MUTATION_RATE_PERTURB_WEIGHT_GENOME){
-				perturbWeight(genome);
+			if(r < population->getConfig()->mutationRatePerturbWeightGenome){
+				perturbWeight(genome, population);
 			}
 			break;
 		case(ToggleNode):
-			if(r < MUTATION_RATE_TOGGLE_NODE){
+			if(r < population->getConfig()->mutationRateToggleNode){
 				toggleNode(genome);
 			}
 			break;
 		case(ToggleConnection):
-			if(r < MUTATION_RATE_TOGGLE_CONNECTION){
+			if(r < population->getConfig()->mutationRateToggleConnection){
 				toggleConnection(genome);
 			}
 			break;
 		case(RemoveNode):
-			if(r < MUTATION_RATE_REMOVE_NODE){
+			if(r < population->getConfig()->mutationRateRemoveNode){
 				removeNode(genome);
 			}
 			break;
 		case(RemoveConnection):
-			if(r < MUTATION_RATE_REMOVE_CONNECTION){
+			if(r < population->getConfig()->mutationRateRemoveConnection){
 				removeConnection(genome);
 			}
 			break;
@@ -122,7 +122,7 @@ void Mutation::addConnection(Genome* genome, Population* population){
 	newConnectionGene->innovation = population->updateInnovations(AddConnection, GeneTypeConnection, inputKey, outputKey);
 	newConnectionGene->inputId = inputKey;
 	newConnectionGene->outputId = outputKey;
-	newConnectionGene->weight = CONNECTION_GENE_INITIAL_WEIGHT;
+	newConnectionGene->weight = population->getConfig()->connectionGeneInitialWeight;
 	newConnectionGene->enabled = true;
 
 	genome->getConnectionKeys()->push_back(newConnectionGene->innovation);
@@ -131,22 +131,22 @@ void Mutation::addConnection(Genome* genome, Population* population){
 	delete currentOutputKeys;
 }
 
-void Mutation::perturbWeight(Genome* genome){
+void Mutation::perturbWeight(Genome* genome, Population* population){
 	// Perturb weights based on rate
 	double perturbationPercent;
 	for(int i = 0; i < genome->getConnectionKeys()->size(); i++){
-		if(((double)rand() / (double)RAND_MAX) < MUTATION_RATE_SWAP_WEIGHT_CONNECTION){
-			double swapWeight = 2.0 * (((double)rand() / (double)RAND_MAX) - 0.5) * CONNECTION_GENE_ABS_WEIGHT_CAP;
+		if(((double)rand() / (double)RAND_MAX) < population->getConfig()->mutationRateSwapWeightConnection){
+			double swapWeight = 2.0 * (((double)rand() / (double)RAND_MAX) - 0.5) * population->getConfig()->connectionGeneAbsWeightCap;
 			genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = swapWeight;
 		}
-		if(((double)rand() / (double)RAND_MAX) < MUTATION_RATE_PERTURB_WEIGHT_CONNECTION){
+		if(((double)rand() / (double)RAND_MAX) < population->getConfig()->mutationRatePerturbWeightConnection){
 			perturbationPercent = (2.0 * ((double)rand() / (RAND_MAX))) - 1.0;
-			genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight += (CONNECTION_GENE_MAX_WEIGHT_PERTURBATION * perturbationPercent);
-			if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight > CONNECTION_GENE_ABS_WEIGHT_CAP){
-				genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = CONNECTION_GENE_ABS_WEIGHT_CAP;
+			genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight += (population->getConfig()->connectionGeneMaxWeightPerturbation * perturbationPercent);
+			if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight > population->getConfig()->connectionGeneAbsWeightCap){
+				genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = population->getConfig()->connectionGeneAbsWeightCap;
 			}
-			else if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight < -CONNECTION_GENE_ABS_WEIGHT_CAP){
-				genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = -CONNECTION_GENE_ABS_WEIGHT_CAP;
+			else if(genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight < -population->getConfig()->connectionGeneAbsWeightCap){
+				genome->getConnectionGenes()->operator[](genome->getConnectionKeys()->operator[](i))->weight = -population->getConfig()->connectionGeneAbsWeightCap;
 			}
 		}
 	}

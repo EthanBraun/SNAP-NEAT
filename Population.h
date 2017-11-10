@@ -37,9 +37,10 @@ private:
     std::vector<Genome*>* organisms;
 	std::vector<Species*>* speciesList;
 	std::vector<Innovation*>* innovations;
+	Config* config;
 
 public:
-	Population();
+	Population(Config*);
 	~Population();
 
 	void resetPopulation();
@@ -48,6 +49,7 @@ public:
 	std::vector<Genome*>* getOrganisms();
 	std::vector<Species*>* getSpeciesList();
 	std::vector<Innovation*>* getInnovations();
+	Config* getConfig();
 	void initializePopulation();
 	void checkSpeciesStagnation();
 	void speciatePopulation();

@@ -3,11 +3,12 @@
 #include <limits.h>
 #include <stdexcept>
 
-Population::Population(){
+Population::Population(Config* externalConfig){
 	innovationNumber = 0;
 	organisms = new std::vector<Genome*>();
 	speciesList = new std::vector<Species*>();
 	innovations = new std::vector<Innovation*>();
+	config = externalConfig;
 }	
 
 Population::~Population(){
@@ -88,11 +89,15 @@ std::vector<Innovation*>* Population::getInnovations(){
 	return innovations;
 }
 
+Config* Population::getConfig(){
+	return config;
+}
+
 void Population::initializePopulation(){
-	for(int i = 0; i < POPULATION_SIZE; i++){
+	for(int i = 0; i < config->populationSize; i++){
 		Genome* genome = new Genome();
 		genome->setId(updateGenomeId());
-		for(int j = 0; j < GENOME_NUM_INPUT_NODES; j++){
+		for(int j = 0; j < config->genomeNumInputNodes; j++){
 			NodeGene* inputNode = new NodeGene();
 			inputNode->innovation = j;
 			inputNode->type = Input;
@@ -103,29 +108,29 @@ void Population::initializePopulation(){
 		}
 		// Add bias node
 		NodeGene* biasNode = new NodeGene();
-		biasNode->innovation = GENOME_NUM_INPUT_NODES;
+		biasNode->innovation = config->genomeNumInputNodes;
 		biasNode->type = Input;
 		biasNode->enabled = true;
 
-		genome->getNodeKeys()->push_back(GENOME_NUM_INPUT_NODES);
-		genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES, biasNode));
+		genome->getNodeKeys()->push_back(config->genomeNumInputNodes);
+		genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(config->genomeNumInputNodes, biasNode));
 
-		for(int j = 1; j <= GENOME_NUM_OUTPUT_NODES; j++){
+		for(int j = 1; j <= config->genomeNumOutputNodes; j++){
 			NodeGene* outputNode = new NodeGene();
-			outputNode->innovation = GENOME_NUM_INPUT_NODES + j;
+			outputNode->innovation = config->genomeNumInputNodes + j;
 			outputNode->type = Output;
 			outputNode->enabled = true;
 
-			genome->getNodeKeys()->push_back(GENOME_NUM_INPUT_NODES + j);
-			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(GENOME_NUM_INPUT_NODES + j, outputNode));
+			genome->getNodeKeys()->push_back(config->genomeNumInputNodes + j);
+			genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(config->genomeNumInputNodes + j, outputNode));
 		}
-		if(POPULATION_INITIALIZE_GENOMES_CONNECTED){
+		if(config->populationInitializeGenomesConnected){
 			int connectionInnov = 1;
 			for(int j = 0; j < genome->getNodeKeys()->size(); j++){
 				for(int k = 0; k < genome->getNodeKeys()->size(); k++){
 					if(j != k && genome->getNodeGenes()->operator[](j)->type == Input && genome->getNodeGenes()->operator[](k)->type == Output){
 						ConnectionGene* newConnection = new ConnectionGene();
-						newConnection->innovation = GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + connectionInnov;
+						newConnection->innovation = config->genomeNumInputNodes + config->genomeNumOutputNodes + connectionInnov;
 						newConnection->inputId = j;
 						newConnection->outputId = k;
 						newConnection->weight = 1.0;
@@ -140,7 +145,12 @@ void Population::initializePopulation(){
 		}
 		organisms->push_back(genome);
 	}
-	innovationNumber = POPULATION_INITIALIZE_GENOMES_CONNECTED ? (GENOME_NUM_INPUT_NODES * GENOME_NUM_OUTPUT_NODES) + GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + 1 : GENOME_NUM_INPUT_NODES + GENOME_NUM_OUTPUT_NODES + 1;
+	if(config->populationInitializeGenomesConnected){
+		innovationNumber = (config->genomeNumInputNodes * config->genomeNumOutputNodes) + config->genomeNumInputNodes + config->genomeNumOutputNodes + 1;
+	}
+	else{
+		innovationNumber = config->genomeNumInputNodes + config->genomeNumOutputNodes + 1;
+	}
 }
 
 void Population::checkSpeciesStagnation(){
@@ -148,11 +158,11 @@ void Population::checkSpeciesStagnation(){
 	for(int i = 0; i < speciesList->size(); i++){
 		if(speciesList->operator[](i)->stagnant){
 			speciesList->operator[](i)->stagnation += 1;
-			if(VERBOSE_LOG){
+			if(config->verboseLog){
 				printf("\t\t\t\t\t\tSPECIES %d HAS BEEN IN STAGNATION FOR %d GENERATION(S)\n", i, speciesList->operator[](i)->stagnation);
 			}
-			if(speciesList->operator[](i)->stagnation > POPULATION_SPECIES_MAX_STAGNATION){
-				if(VERBOSE_LOG){
+			if(speciesList->operator[](i)->stagnation > config->populationSpeciesMaxStagnation){
+				if(config->verboseLog){
 					printf("\t\t\t\t\t\tSPECIES %d EXCEEDS MAX STAGNATION\n", i);
 				}
 				speciesList->operator[](i)->representative = NULL;
@@ -177,7 +187,7 @@ void Population::speciatePopulation(){
 	for(int i = 0; i < organisms->size(); i++){
 		compatibleSpeciesFound = false;
 		for(int j = 0; j < speciesList->size(); j++){
-			if(calculateCompatibilityDistance(organisms->operator[](i), speciesList->operator[](j)->representative) < Config::genomeCompatibilityThreshold){
+			if(calculateCompatibilityDistance(organisms->operator[](i), speciesList->operator[](j)->representative) < config->adjustedGenomeCompatibilityThreshold){
 				speciesList->operator[](j)->members->push_back(organisms->operator[](i));
 				organisms->operator[](i)->setSpecies(j);
 				compatibleSpeciesFound = true;
@@ -203,16 +213,16 @@ void Population::speciatePopulation(){
 }
 
 void Population::adjustGenomeCompatibilityThreshold(){
-	if(speciesList->size() == POPULATION_TARGET_SPECIES_NUMBER){
+	if(speciesList->size() == config->populationTargetSpeciesNumber){
 		return;
 	}
-	else if(speciesList->size() < POPULATION_TARGET_SPECIES_NUMBER){
-		if(Config::genomeCompatibilityThreshold >= GENOME_COMPATIBILITY_THRESHOLD_PERTURBATION_AMOUNT){
-			Config::genomeCompatibilityThreshold -= GENOME_COMPATIBILITY_THRESHOLD_PERTURBATION_AMOUNT;
+	else if(speciesList->size() < config->populationTargetSpeciesNumber){
+		if(config->adjustedGenomeCompatibilityThreshold >= config->genomeCompatibilityThresholdPerturbationAmount){
+			config->adjustedGenomeCompatibilityThreshold -= config->genomeCompatibilityThresholdPerturbationAmount;
 		}
 	}
 	else{
-		Config::genomeCompatibilityThreshold += GENOME_COMPATIBILITY_THRESHOLD_PERTURBATION_AMOUNT;
+		config->adjustedGenomeCompatibilityThreshold += config->genomeCompatibilityThresholdPerturbationAmount;
 	}
 }
 
@@ -242,11 +252,11 @@ void Population::calculateSpeciesSizeChanges(){
 
 	for(int i = 0; i < speciesList->size(); i++){		
 		printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f\n", speciesList->operator[](i)->maxFitness);
-		if(VERBOSE_LOG){
+		if(config->verboseLog){
 			printf("\t\t\t\tCURRENT SPECIES AVERAGE FITNESS: %f\n\n", speciesList->operator[](i)->averageFitness);
 		}
 		currentSpecies = speciesList->operator[](i);
-		currentSpecies->cullRate = (int)round(POPULATION_SPECIES_CULL_RATE * (double)currentSpecies->members->size());
+		currentSpecies->cullRate = (int)round(config->populationSpeciesCullRate * (double)currentSpecies->members->size());
 		cullSum += currentSpecies->cullRate;
 	}
 	for(int i = 0; i < speciesList->size(); i++){
@@ -374,7 +384,7 @@ void Population::updateElites(){
 
 	for(int i = 0; i < speciesList->size(); i++){
 		currentSpecies = speciesList->operator[](i);
-		if(currentSpecies->members->size() >= round(POPULATION_SPECIES_CULL_RATE * POPULATION_SPECIES_SIZE_FOR_ELITISM)){
+		if(currentSpecies->members->size() >= round(config->populationSpeciesCullRate * config->populationSpeciesSizeForElitism)){
 			elite = currentSpecies->members->operator[](0);
 			for(int j = 0; j < currentSpecies->members->size(); j++){
 				if(currentSpecies->members->operator[](j)->getFitness() > elite->getFitness()){
@@ -422,7 +432,7 @@ void Population::repopulate(){
 				} while(randB == randA);
 				parentB = speciesList->operator[](i)->members->operator[](randB);
 			}
-			if(((double)rand() / (double)RAND_MAX) < POPULATION_CROSSOVER_RATE){
+			if(((double)rand() / (double)RAND_MAX) < config->populationCrossoverRate){
 				newGenome = new Genome(parentA, parentB);
 			}
 			else{
@@ -436,7 +446,7 @@ void Population::repopulate(){
 }
 
 void Population::removeEmptySpecies(){
-	if(VERBOSE_LOG){
+	if(config->verboseLog){
 		for(int i = 0; i < speciesList->size(); i++){
 			printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
 		}
@@ -444,11 +454,11 @@ void Population::removeEmptySpecies(){
 	}
 
 	for(int i = 0; i < speciesList->size(); i++){
-		if(VERBOSE_LOG){
+		if(config->verboseLog){
 			printf("\t\t\tSPECIES %d HAS %d MEMBERS\n", i, (int)speciesList->operator[](i)->members->size());
 		}
 		if(speciesList->operator[](i)->members->size() == 0){
-			if(VERBOSE_LOG){
+			if(config->verboseLog){
 				printf("Deleting species %d\n", i);
 			}
 			delete speciesList->operator[](i)->members;
@@ -484,7 +494,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 
 	do{
 		initializePopulation();
-		for(int i = 0; i < POPULATION_MAX_GENERATION; i++){
+		for(int i = 0; i < config->populationMaxGeneration; i++){
 			printf("\n--- GENERATION %d --- %d organisms\n", i, (int)organisms->size());
 			//printPopulationStats();
 			//printf("\n - Removing innovations...\n");
@@ -516,7 +526,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			//printf(" - Calculating species size changes...\n");
 			calculateSpeciesSizeChanges();
 
-			if(VERBOSE_LOG){
+			if(config->verboseLog){
 				printPopulationStats();
 			}
 			//printf(" - Reducing population...\n");
@@ -535,14 +545,14 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			setSpeciesReps();
 		}
 		resetPopulation();
-	} while(RESET_AT_MAX_GENERATION && !endEvaluation);
+	} while(config->resetAtMaxGeneration && !endEvaluation);
 }
 
 void Population::printPopulationStats(){
 	double fitnessSum;
 	double maxFitness;
 
-	printf("\tGoal fitness: %f\n\n", POPULATION_MAX_GENOME_FITNESS);
+	printf("\tGoal fitness: %f\n\n", config->populationMaxGenomeFitness);
 	for(int i = 0; i < speciesList->size(); i++){
 		fitnessSum = 0.0;
 		maxFitness = 0.0;
@@ -573,13 +583,13 @@ bool Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 		}
 	}
 	catch(std::out_of_range &ex){
-		if(VERBOSE_LOG){
+		if(config->verboseLog){
 			printf("Out of range exception caught whilst setting genome shared fitness\n");
 		}
 		currentGenome->setSharedFitness(0.0);
 	}
 
-	if(currentGenome->getFitness() >= POPULATION_MAX_GENOME_FITNESS){
+	if(currentGenome->getFitness() >= config->populationMaxGenomeFitness){
 		//printf("\nGenome %ld exceeds max fitness %f with %f\n", currentGenome->getId(), POPULATION_MAX_GENOME_FITNESS, currentGenome->getFitness());
 		//printf("\t\tPOPULATION GENOME ID -- LONG_MAX: %ld -- %ld\n", genomeId, LONG_MAX);
 		currentGenome->printGenotype();
@@ -678,10 +688,10 @@ double Population::calculateCompatibilityDistance(Genome* a, Genome* b){
 		}
 	}
 
-	compatibilityDistance += (GENOME_COMPATIBILITY_COEFFICIENT_ONE * excessGenes) / maxTotalGenomeSize;
-	compatibilityDistance += (GENOME_COMPATIBILITY_COEFFICIENT_TWO * disjointGenes) / maxTotalGenomeSize;
+	compatibilityDistance += (config->genomeCompatibilityCoefficientOne * excessGenes) / maxTotalGenomeSize;
+	compatibilityDistance += (config->genomeCompatibilityCoefficientTwo * disjointGenes) / maxTotalGenomeSize;
 	if(matchingConnectionGeneCount != 0){
-		compatibilityDistance += GENOME_COMPATIBILITY_COEFFICIENT_THREE * ((double)matchingConnectionGeneWeightDifferenceSum / (double)matchingConnectionGeneCount);
+		compatibilityDistance += config->genomeCompatibilityCoefficientThree * ((double)matchingConnectionGeneWeightDifferenceSum / (double)matchingConnectionGeneCount);
 	}
 	return compatibilityDistance;
 }
