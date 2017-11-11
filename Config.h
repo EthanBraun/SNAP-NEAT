@@ -16,7 +16,7 @@
 
 #define CONNECTION_GENE_INITIAL_WEIGHT 0.0							//
 #define CONNECTION_GENE_MAX_WEIGHT_PERTURBATION 0.30
-#define CONNECTION_GENE_ABS_WEIGHT_CAP 8.0
+#define CONNECTION_GENE_ABS_WEIGHT_CAP 8.0							//
 
 #define GENOME_NUM_INPUT_NODES 16									//
 #define GENOME_NUM_OUTPUT_NODES 4									//
@@ -58,7 +58,7 @@ struct Config{
 
 	double connectionGeneInitialWeight;							//
 	double connectionGeneMaxWeightPerturbation;
-	double connectionGeneAbsWeightCap;
+	double connectionGeneAbsWeightCap;							//
 	
 	int genomeNumInputNodes;									//
 	int genomeNumOutputNodes;									//

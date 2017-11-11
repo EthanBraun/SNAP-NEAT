@@ -9,6 +9,7 @@ Population::Population(Config* externalConfig){
 	speciesList = new std::vector<Species*>();
 	innovations = new std::vector<Innovation*>();
 	config = externalConfig;
+	maxFitness = 0.0;
 }	
 
 Population::~Population(){
@@ -251,7 +252,7 @@ void Population::calculateSpeciesSizeChanges(){
 	double tempSpawn;
 
 	for(int i = 0; i < speciesList->size(); i++){		
-		printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f\n", speciesList->operator[](i)->maxFitness);
+		//printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f\n", speciesList->operator[](i)->maxFitness);
 		if(config->verboseLog){
 			printf("\t\t\t\tCURRENT SPECIES AVERAGE FITNESS: %f\n\n", speciesList->operator[](i)->averageFitness);
 		}
@@ -495,7 +496,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 	do{
 		initializePopulation();
 		for(int i = 0; i < config->populationMaxGeneration; i++){
-			printf("\n--- GENERATION %d --- %d organisms\n", i, (int)organisms->size());
+			//printf("\n--- GENERATION %d --- %d organisms\n", i, (int)organisms->size());
 			//printPopulationStats();
 			//printf("\n - Removing innovations...\n");
 			for(int j = 0; j < innovations->size(); j++){
@@ -587,6 +588,10 @@ bool Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 			printf("Out of range exception caught whilst setting genome shared fitness\n");
 		}
 		currentGenome->setSharedFitness(0.0);
+	}
+
+	if(currentGenome->getFitness() > maxFitness){
+		maxFitness = currentGenome->getFitness();
 	}
 
 	if(currentGenome->getFitness() >= config->populationMaxGenomeFitness){

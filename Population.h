@@ -34,10 +34,11 @@ private:
 	long genomeId;
 	int innovationNumber;
 	double speciesAverageFitnessSum;
-    std::vector<Genome*>* organisms;
+	std::vector<Genome*>* organisms;
 	std::vector<Species*>* speciesList;
 	std::vector<Innovation*>* innovations;
 	Config* config;
+	double maxFitness;
 
 public:
 	Population(Config*);
@@ -61,7 +62,7 @@ public:
 	void repopulate();
 	void removeEmptySpecies();
 	void setSpeciesReps();
-	void evaluatePopulation(void* evaluationFunction(Network* network, double* fitness));
+	double evaluatePopulation(void* evaluationFunction(Network* network, double* fitness));
 	bool evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome*);
 	void printPopulationStats();
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
