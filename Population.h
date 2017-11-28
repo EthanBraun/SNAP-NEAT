@@ -18,6 +18,7 @@ struct Species{
 	int cullRate;
 	int stagnation;
 	bool stagnant;
+	bool exceedsMaxStagnation;
 	double maxFitness;
 };
 
@@ -39,6 +40,7 @@ private:
 	std::vector<Innovation*>* innovations;
 	Config* config;
 	double maxFitness;
+	bool populationStagnant;
 
 public:
 	Population(Config*);
@@ -56,6 +58,7 @@ public:
 	void speciatePopulation();
 	void adjustGenomeCompatibilityThreshold();
 	void calculateSpeciesFitnesses();
+	void checkPopulationStagnation();
 	void calculateSpeciesSizeChanges();
 	void reducePopulation();
 	void updateElites();

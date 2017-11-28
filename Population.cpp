@@ -10,6 +10,7 @@ Population::Population(Config* externalConfig){
 	innovations = new std::vector<Innovation*>();
 	config = externalConfig;
 	maxFitness = 0.0;
+	populationStagnant = false;
 }	
 
 Population::~Population(){
@@ -155,7 +156,7 @@ void Population::initializePopulation(){
 }
 
 void Population::checkSpeciesStagnation(){
-	// Removes stagnant species from the population
+	// Checks if a species has been stagnant for the max number of stagnant generations
 	for(int i = 0; i < speciesList->size(); i++){
 		if(speciesList->operator[](i)->stagnant){
 			speciesList->operator[](i)->stagnation += 1;
@@ -166,12 +167,13 @@ void Population::checkSpeciesStagnation(){
 				if(config->verboseLog){
 					printf("\t\t\t\t\t\tSPECIES %d EXCEEDS MAX STAGNATION\n", i);
 				}
-				speciesList->operator[](i)->representative = NULL;
-				speciesList->operator[](i)->members->clear();
-				delete speciesList->operator[](i)->members;
-				delete speciesList->operator[](i);
-				speciesList->erase(speciesList->begin() + i);
-				i--;
+				speciesList->operator[](i)->exceedsMaxStagnation = true;
+				//speciesList->operator[](i)->representative = NULL;
+				//speciesList->operator[](i)->members->clear();
+				//delete speciesList->operator[](i)->members;
+				//delete speciesList->operator[](i);
+				//speciesList->erase(speciesList->begin() + i);
+				//i--;
 			}
 		}
 	}
@@ -205,6 +207,7 @@ void Population::speciatePopulation(){
 			newSpecies->cullRate = 0;
 			newSpecies->stagnation = 0;
 			newSpecies->stagnant = false;
+			newSpecies->exceedsMaxStagnation = false;
 			newSpecies->maxFitness = newSpecies->representative->getFitness();
 			speciesList->push_back(newSpecies);
 			newSpecies->representative->setSpecies(speciesList->size() - 1);
@@ -239,10 +242,21 @@ void Population::calculateSpeciesFitnesses(){
 				speciesList->operator[](i)->maxFitness = speciesList->operator[](i)->members->operator[](j)->getFitness();
 				speciesList->operator[](i)->stagnant = false;
 				speciesList->operator[](i)->stagnation = 0;
+				speciesList->operator[](i)->exceedsMaxStagnation = false;
 			}
 		}
 		speciesAverageFitnessSum += speciesList->operator[](i)->averageFitness;
 	}
+}
+
+void Population::checkPopulationStagnation(){
+	for(int i = 0; i < speciesList->size(); i++){
+		if(!speciesList->operator[](i)->exceedsMaxStagnation){
+			populationStagnant = false;
+			return;
+		}
+	}
+	populationStagnant = true;
 }
 
 void Population::calculateSpeciesSizeChanges(){
@@ -251,8 +265,9 @@ void Population::calculateSpeciesSizeChanges(){
 	int spawnSum = 0;
 	double tempSpawn;
 
+	// Calculate species cull rates
 	for(int i = 0; i < speciesList->size(); i++){		
-		//printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f\n", speciesList->operator[](i)->maxFitness);
+		printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f  \t\t%d -- %d\n", speciesList->operator[](i)->maxFitness, (int)speciesList->operator[](i)->representative->getNodeKeys()->size(), (int)speciesList->operator[](i)->representative->getConnectionKeys()->size());
 		if(config->verboseLog){
 			printf("\t\t\t\tCURRENT SPECIES AVERAGE FITNESS: %f\n\n", speciesList->operator[](i)->averageFitness);
 		}
@@ -260,34 +275,75 @@ void Population::calculateSpeciesSizeChanges(){
 		currentSpecies->cullRate = (int)round(config->populationSpeciesCullRate * (double)currentSpecies->members->size());
 		cullSum += currentSpecies->cullRate;
 	}
-	for(int i = 0; i < speciesList->size(); i++){
-		currentSpecies = speciesList->operator[](i);
-		tempSpawn = currentSpecies->members->size() != 0 ? (currentSpecies->averageFitness / speciesAverageFitnessSum) * cullSum : 0.0;
-		currentSpecies->spawnRate = (int)round(tempSpawn);
-		currentSpecies->spawnRate = currentSpecies->spawnRate >= 0 ? currentSpecies->spawnRate : 0;
-		spawnSum += currentSpecies->spawnRate;
-	}
-	while(cullSum != spawnSum){
+	// Calculate species spawn rates
+	if(!populationStagnant){
 		for(int i = 0; i < speciesList->size(); i++){
-			if(cullSum > spawnSum){
-				if(speciesList->operator[](i)->members->size() > 0){
-					speciesList->operator[](i)->spawnRate += 1;
-					spawnSum++;
-				}
-				else if(speciesList->operator[](i)->cullRate > 0){
-					speciesList->operator[](i)->cullRate -= 1;
-					cullSum--;
-				}
-			}
-			else if(cullSum < spawnSum){
-				if(speciesList->operator[](i)->spawnRate > 0){
-					speciesList->operator[](i)->spawnRate -= 1;
-					spawnSum--;
-				}
+			currentSpecies = speciesList->operator[](i);
+			if(!currentSpecies->stagnant){
+				tempSpawn = currentSpecies->members->size() != 0 ? (currentSpecies->averageFitness / speciesAverageFitnessSum) * cullSum : 0.0;
+				currentSpecies->spawnRate = (int)round(tempSpawn);
+				currentSpecies->spawnRate = currentSpecies->spawnRate >= 0 ? currentSpecies->spawnRate : 0;
 			}
 			else{
-				break;
+				currentSpecies->spawnRate = 0;
 			}
+			spawnSum += currentSpecies->spawnRate;
+		}
+		while(cullSum != spawnSum){
+			for(int i = 0; i < speciesList->size(); i++){
+				if(cullSum > spawnSum){
+					if(!speciesList->operator[](i)->stagnant && speciesList->operator[](i)->members->size() > 0){
+						speciesList->operator[](i)->spawnRate += 1;
+						spawnSum++;
+					}
+					else if(speciesList->operator[](i)->cullRate > 0){
+						speciesList->operator[](i)->cullRate -= 1;
+						cullSum--;
+					}
+				}
+				else if(cullSum < spawnSum){
+					if(speciesList->operator[](i)->spawnRate > 0){
+						speciesList->operator[](i)->spawnRate -= 1;
+						spawnSum--;
+					}
+				}
+				else{
+					break;
+				}
+			}
+		}
+	}
+	else{
+		// Only allow top two species to reproduce if population is stagnant
+		if(speciesList->size() > 1){
+			Species *bestSpecies = NULL;
+			Species *secondSpecies = NULL;
+			for(int i = 0; i < speciesList->size(); i++){
+				if(bestSpecies == NULL){
+					bestSpecies = speciesList->operator[](i);
+				}
+				else if(secondSpecies == NULL){
+					if(speciesList->operator[](i)->fitness > bestSpecies->fitness){
+						secondSpecies = bestSpecies;
+						bestSpecies = speciesList->operator[](i);
+					}
+					else{
+						secondSpecies = speciesList->operator[](i);
+					}
+				}
+				else if(speciesList->operator[](i)->fitness > bestSpecies->fitness){
+					secondSpecies = bestSpecies;
+					bestSpecies = speciesList->operator[](i);
+				}
+				else if(speciesList->operator[](i)->fitness > secondSpecies->fitness){
+					secondSpecies = speciesList->operator[](i);
+				}
+			}
+			
+		}
+		else{
+			speciesList->operator[](0)->spawnRate = cullSum;
+			spawnSum = cullSum;
 		}
 	}
 }
@@ -482,7 +538,7 @@ void Population::setSpeciesReps(){
 	}
 }
 
-void Population::evaluatePopulation(void* evaluationFunction(Network* network, double* fitness)){
+double Population::evaluatePopulation(void* evaluationFunction(Network* network, double* fitness)){
 	// Initialize population
 	// For each generation:
 	//		Clear innovations and species members
@@ -496,7 +552,7 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 	do{
 		initializePopulation();
 		for(int i = 0; i < config->populationMaxGeneration; i++){
-			//printf("\n--- GENERATION %d --- %d organisms\n", i, (int)organisms->size());
+			printf("\n--- GENERATION %d --- %d organisms\n", i, (int)organisms->size());
 			//printPopulationStats();
 			//printf("\n - Removing innovations...\n");
 			for(int j = 0; j < innovations->size(); j++){
@@ -524,6 +580,8 @@ void Population::evaluatePopulation(void* evaluationFunction(Network* network, d
 			}
 			//printf(" - Calculating species average fitnesses...\n");
 			calculateSpeciesFitnesses();
+
+			checkPopulationStagnation();
 			//printf(" - Calculating species size changes...\n");
 			calculateSpeciesSizeChanges();
 
