@@ -260,6 +260,7 @@ void Population::checkPopulationStagnation(){
 }
 
 void Population::calculateSpeciesSizeChanges(){
+	// Population stagnation could be cleaned up a bit
 	Species* currentSpecies;
 	int cullSum = 0;
 	int spawnSum = 0;
@@ -316,34 +317,60 @@ void Population::calculateSpeciesSizeChanges(){
 	else{
 		// Only allow top two species to reproduce if population is stagnant
 		if(speciesList->size() > 1){
-			Species *bestSpecies = NULL;
-			Species *secondSpecies = NULL;
+			// Descending by maxFitness
+			Species *topSpecies[2] = { NULL, NULL };
+
 			for(int i = 0; i < speciesList->size(); i++){
-				if(bestSpecies == NULL){
-					bestSpecies = speciesList->operator[](i);
+				if(topSpecies[0] == NULL){
+					topSpecies[0] = speciesList->operator[](i);
 				}
-				else if(secondSpecies == NULL){
-					if(speciesList->operator[](i)->fitness > bestSpecies->fitness){
-						secondSpecies = bestSpecies;
-						bestSpecies = speciesList->operator[](i);
+				else if(topSpecies[1] == NULL){
+					if(speciesList->operator[](i)->maxFitness > topSpecies[0]->maxFitness){
+						topSpecies[1] = topSpecies[0];
+						topSpecies[0] = speciesList->operator[](i);
 					}
 					else{
-						secondSpecies = speciesList->operator[](i);
+						topSpecies[1] = speciesList->operator[](i);
 					}
 				}
-				else if(speciesList->operator[](i)->fitness > bestSpecies->fitness){
-					secondSpecies = bestSpecies;
-					bestSpecies = speciesList->operator[](i);
+				else if(speciesList->operator[](i)->maxFitness > topSpecies[0]->maxFitness){
+					topSpecies[1] = topSpecies[0];
+					topSpecies[0] = speciesList->operator[](i);
 				}
-				else if(speciesList->operator[](i)->fitness > secondSpecies->fitness){
-					secondSpecies = speciesList->operator[](i);
+				else if(speciesList->operator[](i)->maxFitness > topSpecies[1]->maxFitness){
+					topSpecies[1] = speciesList->operator[](i);
 				}
 			}
-			
+			topSpecies[0]->spawnRate = round((topSpecies[0]->maxFitness / (topSpecies[0]->maxFitness + topSpecies[1]->maxFitness)) * cullSum);
+			topSpecies[1]->spawnRate = round((topSpecies[1]->maxFitness / (topSpecies[0]->maxFitness + topSpecies[1]->maxFitness)) * cullSum);	
+			spawnSum = topSpecies[0]->spawnRate + topSpecies[1]->spawnRate;
+
+			while(cullSum != spawnSum){
+				for(int i = 0; i < 2; i++){
+					if(cullSum > spawnSum){
+						if(topSpecies[i]->members->size() > 0){
+							topSpecies[i]->spawnRate += 1;
+							spawnSum++;
+						}
+						else if(topSpecies[i]->cullRate > 0){
+							topSpecies[i]->cullRate -= 1;
+							cullSum--;
+						}
+					}
+					else if(cullSum < spawnSum){
+						if(topSpecies[i]->spawnRate > 0){
+							topSpecies[i]->spawnRate -= 1;
+							spawnSum--;
+						}
+					}
+					else{
+						break;
+					}
+				}
+			}
 		}
 		else{
 			speciesList->operator[](0)->spawnRate = cullSum;
-			spawnSum = cullSum;
 		}
 	}
 }
