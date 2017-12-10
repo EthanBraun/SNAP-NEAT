@@ -208,7 +208,8 @@ void Population::speciatePopulation(){
 			newSpecies->stagnation = 0;
 			newSpecies->stagnant = false;
 			newSpecies->exceedsMaxStagnation = false;
-			newSpecies->maxFitness = newSpecies->representative->getFitness();
+			newSpecies->currentMaxFitness = newSpecies->representative->getFitness();
+			newSpecies->globalMaxFitness = newSpecies->currentMaxFitness;
 			speciesList->push_back(newSpecies);
 			newSpecies->representative->setSpecies(speciesList->size() - 1);
 		}
@@ -236,13 +237,17 @@ void Population::calculateSpeciesFitnesses(){
 	for(int i = 0; i < speciesList->size(); i++){
 		speciesList->operator[](i)->averageFitness = 0.0;
 		speciesList->operator[](i)->stagnant = true;
+		speciesList->operator[](i)->currentMaxFitness = 0.0;
 		for(int j = 0; j < speciesList->operator[](i)->members->size(); j++){
 			speciesList->operator[](i)->averageFitness += speciesList->operator[](i)->members->operator[](j)->getSharedFitness();
-			if(speciesList->operator[](i)->members->operator[](j)->getFitness() > speciesList->operator[](i)->maxFitness){
-				speciesList->operator[](i)->maxFitness = speciesList->operator[](i)->members->operator[](j)->getFitness();
-				speciesList->operator[](i)->stagnant = false;
-				speciesList->operator[](i)->stagnation = 0;
-				speciesList->operator[](i)->exceedsMaxStagnation = false;
+			if(speciesList->operator[](i)->members->operator[](j)->getFitness() > speciesList->operator[](i)->currentMaxFitness){
+				speciesList->operator[](i)->currentMaxFitness = speciesList->operator[](i)->members->operator[](j)->getFitness();
+				if(speciesList->operator[](i)->currentMaxFitness > speciesList->operator[](i)->globalMaxFitness){
+					speciesList->operator[](i)->globalMaxFitness = speciesList->operator[](i)->currentMaxFitness;
+					speciesList->operator[](i)->stagnant = false;
+					speciesList->operator[](i)->stagnation = 0;
+					speciesList->operator[](i)->exceedsMaxStagnation = false;
+				}
 			}
 		}
 		speciesAverageFitnessSum += speciesList->operator[](i)->averageFitness;
@@ -268,7 +273,7 @@ void Population::calculateSpeciesSizeChanges(){
 
 	// Calculate species cull rates
 	for(int i = 0; i < speciesList->size(); i++){		
-		printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f  \t\t%d -- %d\n", speciesList->operator[](i)->maxFitness, (int)speciesList->operator[](i)->representative->getNodeKeys()->size(), (int)speciesList->operator[](i)->representative->getConnectionKeys()->size());
+		printf("\t\t\t\tCURRENT SPECIES MAX FITNESS: %f -- %f  \t\t%d -- %d\n", speciesList->operator[](i)->currentMaxFitness, speciesList->operator[](i)->globalMaxFitness, (int)speciesList->operator[](i)->representative->getNodeKeys()->size(), (int)speciesList->operator[](i)->representative->getConnectionKeys()->size());
 		if(config->verboseLog){
 			printf("\t\t\t\tCURRENT SPECIES AVERAGE FITNESS: %f\n\n", speciesList->operator[](i)->averageFitness);
 		}
@@ -325,7 +330,7 @@ void Population::calculateSpeciesSizeChanges(){
 					topSpecies[0] = speciesList->operator[](i);
 				}
 				else if(topSpecies[1] == NULL){
-					if(speciesList->operator[](i)->maxFitness > topSpecies[0]->maxFitness){
+					if(speciesList->operator[](i)->currentMaxFitness > topSpecies[0]->currentMaxFitness){
 						topSpecies[1] = topSpecies[0];
 						topSpecies[0] = speciesList->operator[](i);
 					}
@@ -333,16 +338,16 @@ void Population::calculateSpeciesSizeChanges(){
 						topSpecies[1] = speciesList->operator[](i);
 					}
 				}
-				else if(speciesList->operator[](i)->maxFitness > topSpecies[0]->maxFitness){
+				else if(speciesList->operator[](i)->currentMaxFitness > topSpecies[0]->currentMaxFitness){
 					topSpecies[1] = topSpecies[0];
 					topSpecies[0] = speciesList->operator[](i);
 				}
-				else if(speciesList->operator[](i)->maxFitness > topSpecies[1]->maxFitness){
+				else if(speciesList->operator[](i)->currentMaxFitness > topSpecies[1]->currentMaxFitness){
 					topSpecies[1] = speciesList->operator[](i);
 				}
 			}
-			topSpecies[0]->spawnRate = round((topSpecies[0]->maxFitness / (topSpecies[0]->maxFitness + topSpecies[1]->maxFitness)) * cullSum);
-			topSpecies[1]->spawnRate = round((topSpecies[1]->maxFitness / (topSpecies[0]->maxFitness + topSpecies[1]->maxFitness)) * cullSum);	
+			topSpecies[0]->spawnRate = round((topSpecies[0]->currentMaxFitness / (topSpecies[0]->currentMaxFitness + topSpecies[1]->currentMaxFitness)) * cullSum);
+			topSpecies[1]->spawnRate = round((topSpecies[1]->currentMaxFitness / (topSpecies[0]->currentMaxFitness + topSpecies[1]->currentMaxFitness)) * cullSum);	
 			spawnSum = topSpecies[0]->spawnRate + topSpecies[1]->spawnRate;
 
 			while(cullSum != spawnSum){
@@ -565,7 +570,7 @@ void Population::setSpeciesReps(){
 	}
 }
 
-double Population::evaluatePopulation(void* evaluationFunction(Network* network, double* fitness)){
+double Population::evaluatePopulation(void* evaluationFunction(Network* network, double* fitness, void *data), void *data = NULL){
 	// Initialize population
 	// For each generation:
 	//		Clear innovations and species members
@@ -597,7 +602,7 @@ double Population::evaluatePopulation(void* evaluationFunction(Network* network,
 			adjustGenomeCompatibilityThreshold();
 			//printf(" - Evaluating genomes...\n");
 			for(int j = 0; j < organisms->size(); j++){
-				if(evaluateGenome(evaluationFunction, organisms->operator[](j))){
+				if(evaluateGenome(evaluationFunction, organisms->operator[](j), data)){
 					endEvaluation = true;
 					break;
 				}
@@ -655,10 +660,10 @@ void Population::printPopulationStats(){
 	}
 }
 
-bool Population::evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome* currentGenome){
+bool Population::evaluateGenome(void* evaluationFunction(Network* network, double* fitness, void* data), Genome* currentGenome, void *data){
 	Network* phenotype = new Network(currentGenome);
 	double fit = 0.0;
-	evaluationFunction(phenotype, &fit);
+	evaluationFunction(phenotype, &fit, data);
 	currentGenome->setFitness(fit);
 	try{
 		if(speciesList->at(currentGenome->getSpecies())->members->size() != 0){

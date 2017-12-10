@@ -19,7 +19,8 @@ struct Species{
 	int stagnation;
 	bool stagnant;
 	bool exceedsMaxStagnation;
-	double maxFitness;
+	double currentMaxFitness;
+	double globalMaxFitness;
 };
 
 struct Innovation{
@@ -65,8 +66,8 @@ public:
 	void repopulate();
 	void removeEmptySpecies();
 	void setSpeciesReps();
-	double evaluatePopulation(void* evaluationFunction(Network* network, double* fitness));
-	bool evaluateGenome(void* evaluationFunction(Network* network, double* fitness), Genome*);
+	double evaluatePopulation(void* evaluationFunction(Network* network, double* fitness, void*), void*);
+	bool evaluateGenome(void* evaluationFunction(Network* network, double* fitness, void* data), Genome*, void*);
 	void printPopulationStats();
 	bool _innovationEqual(Innovation*, MutationType, GeneType, int, int);
 	double calculateCompatibilityDistance(Genome*, Genome*);
