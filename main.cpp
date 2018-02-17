@@ -2,7 +2,7 @@
 #include "Config.h"
 #include <time.h>
 
-void* fitnessFunction(Network* network, double* fitness){
+void* fitnessFunction(Network* network, double* fitness, void* data){
 	// Write problem-specific fitness function here
 	// More fit networks should return a greater value than less fit networks
 	std::vector<std::vector<double>*>* inputs = new std::vector<std::vector<double>*>();
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
 	Config* config = new Config();
 	initializeDefaultConfig(config);
 	Population* pop = new Population(config);
-	pop->evaluatePopulation(fitnessFunction);
+	pop->evaluatePopulation(fitnessFunction, NULL);
 	delete pop;
 	delete config;
 	return 0;
