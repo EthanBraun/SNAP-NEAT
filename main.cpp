@@ -23,7 +23,6 @@ void* fitnessFunction(Network* network, double* fitness, void* data){
 		outputs->push_back(network->getOutputLayer()->operator[](network->getOutputLayerKeys()->operator[](0))->getActivation());
 		outputDifference = std::abs(desiredOutputs->operator[](i) - network->getOutputLayer()->operator[](network->getOutputLayerKeys()->operator[](0))->getActivation());
 		*fitness += (outputDifference <= 1.0) ? ((1.0 - outputDifference) / 4.0) : 0.0;
-		network->resetActivations();
 	}
 
 	// Max genome fitness is not mutable at runtime so macro is fine

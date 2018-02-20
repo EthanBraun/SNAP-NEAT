@@ -22,8 +22,10 @@ Network::Network(Genome* genome){
 			inputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
 			break;
 		case(Hidden):
-			hiddenLayerKeys->push_back(currentNodeGene->innovation);
-			hiddenLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
+			if(currentNodeGene->enabled){
+				hiddenLayerKeys->push_back(currentNodeGene->innovation);
+				hiddenLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
+			}
 			break;
 		case(Output):
 			outputLayerKeys->push_back(currentNodeGene->innovation);
@@ -73,14 +75,16 @@ Network::Network(Genome* genome){
 			break;
 		}
 
-		connection = new Connection();
-		connection->from = inputNode;
-		connection->to = outputNode;
-		connection->weight = currentConnectionGene->weight;
+		if(currentConnectionGene->enabled){
+			connection = new Connection();
+			connection->from = inputNode;
+			connection->to = outputNode;
+			connection->weight = currentConnectionGene->weight;
 
-		inputNode->addOutput(connection);
-		outputNode->addInput(connection);
-		connections->push_back(connection);
+			inputNode->addOutput(connection);
+			outputNode->addInput(connection);
+			connections->push_back(connection);
+		}
 	}
 
 	// TODO: Establish activation order of neurons (currently just using gene order)
