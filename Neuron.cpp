@@ -38,13 +38,9 @@ void Neuron::activate(){
 	double newActivation = 0.0;
 
 	for(int i = 0; i < inputs->size(); i++){
-		if(innovation == 3){
-			printf("\t+= %f * %f\n", inputs->operator[](i)->from->getActivation(), inputs->operator[](i)->weight);
-		} 
 		newActivation += (inputs->operator[](i)->from->getActivation()) * (inputs->operator[](i)->weight);
 	}
 	activation = steepSigmoid(newActivation);
-	printf("Neuron %d activation: %f -> %f\n", innovation, newActivation, activation);
 }
 
 void Neuron::activateDirect(double input){
