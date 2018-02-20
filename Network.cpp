@@ -163,12 +163,12 @@ void Network::compileOutputs(std::vector<double>* outputs){
 
 void Network::resetActivations(){
 	for(int i = 0; i < inputLayerKeys->size(); i++){
-		inputLayer->operator[](i)->resetActivation();
+		inputLayer->operator[](inputLayerKeys->operator[](i))->resetActivation();
 	}
 	for(int i = 0; i < hiddenLayerKeys->size(); i++){
-		hiddenLayer->operator[](i)->resetActivation();
+		hiddenLayer->operator[](hiddenLayerKeys->operator[](i))->resetActivation();
 	}
 	for(int i = 0; i < outputLayerKeys->size(); i++){
-		outputLayer->operator[](i)->resetActivation();
+		outputLayer->operator[](outputLayerKeys->operator[](i))->resetActivation();
 	}
 }
