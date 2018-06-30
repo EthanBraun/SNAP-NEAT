@@ -4,39 +4,51 @@
 // Macros are default config values
 // Config structs are population specific
 
-#define MUTATION_RATE_ADD_NODE 0.05
-#define MUTATION_RATE_ADD_CONNECTION 0.10
-#define MUTATION_RATE_PERTURB_WEIGHT_GENOME 0.80
+//#define MUTATION_RATE_ADD_NODE 0.03
+//#define MUTATION_RATE_ADD_CONNECTION 0.20
+//#define MUTATION_RATE_PERTURB_WEIGHT_GENOME 0.80
+#define MUTATION_RATE_CORE 0.05
 #define MUTATION_RATE_SWAP_WEIGHT_CONNECTION 0.10
 #define MUTATION_RATE_PERTURB_WEIGHT_CONNECTION 0.90
 #define MUTATION_RATE_TOGGLE_NODE 0.00
 #define MUTATION_RATE_TOGGLE_CONNECTION 0.00
 #define MUTATION_RATE_REMOVE_NODE 0.00
 #define MUTATION_RATE_REMOVE_CONNECTION 0.00
+//#define MUTATION_RATE_ADD_RBF_NODE 0.025
+#define MUTATION_RATE_PERTURB_RBF_NODE_GENOME 0.75
+#define MUTATION_RATE_PERTURB_RBF_NODE_CENTER 0.80
+#define MUTATION_RATE_PERTURB_RBF_NODE_RADIUS 0.80
+//#define MUTATION_RATE_ADD_CASCADE_NODE 0.025
 
-#define CONNECTION_GENE_INITIAL_WEIGHT 0.0							//
+
+#define CONNECTION_GENE_INITIAL_WEIGHT 1.0							//
 #define CONNECTION_GENE_MAX_WEIGHT_PERTURBATION 2.0
 #define CONNECTION_GENE_ABS_WEIGHT_CAP 20.0							//
+
+#define RBF_NODE_INITIAL_CENTER 0.0
+#define RBF_NODE_INITIAL_RADIUS 1.0
+#define RBF_NODE_MAX_CENTER_PERTURBATION 1.0 
+#define RBF_NODE_MAX_RADIUS_PERTURBATION 1.0
+#define RBF_NODE_ABS_CENTER_CAP 10.0
+#define RBF_NODE_MIN_RADIUS 0.0001
+#define RBF_NODE_MAX_RADIUS 10.0
+
+#define OPERATOR_VALUE_LEARNING_RATE 0.05
+#define OPERATOR_PROB_LEARNING_RATE 0.05
+#define INITIALIZATION_PERIOD 10000
+#define MIN_OP_PROB 0.10
 
 #define GENOME_NUM_INPUT_NODES 2
 #define GENOME_NUM_OUTPUT_NODES 1
 
-//#define GENOME_NUM_INPUT_NODES 19
-//#define GENOME_NUM_OUTPUT_NODES 2
-//#define GENOME_NUM_INPUT_NODES 16									//
-//#define GENOME_NUM_OUTPUT_NODES 4									//
-//#define GENOME_NUM_INPUT_NODES 2
-//#define GENOME_NUM_OUTPUT_NODES 1
 
-#define POPULATION_SIZE 300
-#define POPULATION_MAX_GENERATION 10000								//
-//#define POPULATION_MAX_GENOME_FITNESS 2.60
-#define POPULATION_MAX_GENOME_FITNESS 0.99999
-//#define POPULATION_MAX_GENOME_FITNESS 5000.0						//
-//#define POPULATION_MAX_GENOME_FITNESS 0.999998
+#define POPULATION_SIZE 1000
+#define POPULATION_MAX_GENERATION 200								//
+//#define POPULATION_MAX_GENOME_FITNESS 99.99
+#define POPULATION_MAX_GENOME_FITNESS 0.999998
 #define POPULATION_SPECIES_CULL_RATE 0.50							///
 #define POPULATION_SPECIES_MAX_STAGNATION 15						//
-#define POPULATION_TARGET_SPECIES_NUMBER 10							///
+#define POPULATION_TARGET_SPECIES_NUMBER 15							///
 #define POPULATION_SPECIES_SIZE_FOR_ELITISM 5						//
 #define POPULATION_CROSSOVER_RATE 0.75								///
 #define POPULATION_INITIALIZE_GENOMES_CONNECTED true
@@ -53,19 +65,38 @@
 #define GENOME_COMPATIBILITY_THRESHOLD_PERTURBATION_AMOUNT 0.10
 
 struct Config{
-	double mutationRateAddNode;
-	double mutationRateAddConnection;
-	double mutationRatePerturbWeightGenome;
+	//double mutationRateAddNode;
+	//double mutationRateAddConnection;
+	//double mutationRatePerturbWeightGenome;
+	double mutationRateCore;
 	double mutationRateSwapWeightConnection;
 	double mutationRatePerturbWeightConnection;
 	double mutationRateToggleNode;
 	double mutationRateToggleConnection;
 	double mutationRateRemoveNode;
 	double mutationRateRemoveConnection;
+	//double mutationRateAddRbfNode;
+	double mutationRatePerturbRbfNodeGenome;
+	double mutationRatePerturbRbfNodeCenter;
+	double mutationRatePerturbRbfNodeRadius;
+	//double mutationRateAddCascadeNode;
 
 	double connectionGeneInitialWeight;							//
 	double connectionGeneMaxWeightPerturbation;
 	double connectionGeneAbsWeightCap;							//
+
+	double rbfNodeInitialCenter;
+	double rbfNodeInitialRadius;
+	double rbfNodeMaxCenterPerturbation;
+	double rbfNodeMaxRadiusPerturbation;
+	double rbfNodeAbsCenterCap;
+	double rbfNodeMinRadius;
+	double rbfNodeMaxRadius;
+
+	double operatorValueLearningRate;
+	double operatorProbLearningRate;
+	int initializationPeriod;
+	double minOpProb;
 	
 	int genomeNumInputNodes;									//
 	int genomeNumOutputNodes;									//

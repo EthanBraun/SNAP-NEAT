@@ -5,5 +5,6 @@
 
 double sigmoid(double);
 double steepSigmoid(double);
+double radialBasisFunction(double, double, double);
 
 #endif

@@ -9,6 +9,12 @@ struct NodeGene {
 	int innovation;
 	NodeType type;
 	bool enabled;
+	// RBF-NEAT parameters
+	bool rbf;
+	float center;
+	float radius;
+	// Cascade-NEAT parameter
+	bool cascade;
 };
 
 struct ConnectionGene {
@@ -23,6 +29,8 @@ class Genome {
 private:
 	long id;
 	std::vector<int>* hiddenNodeKeys; 
+	std::vector<int>* rbfNodeKeys;
+	std::vector<int>* cascadeNodeKeys;
 	std::vector<int>* nodeKeys;
 	std::vector<int>* connectionKeys;
 	std::map<int, NodeGene*>* nodeGenes;
@@ -31,6 +39,7 @@ private:
 	double fitness;
 	double sharedFitness;
 	bool elite;
+	int recentCoreOp;
 public:
 	Genome();
 	Genome(Genome*);
@@ -38,6 +47,8 @@ public:
 	~Genome();
 
 	std::vector<int>* getHiddenNodeKeys();
+	std::vector<int>* getRbfNodeKeys();
+	std::vector<int>* getCascadeNodeKeys();
 	std::vector<int>* getNodeKeys();
 	std::vector<int>* getConnectionKeys();
 	std::map<int, NodeGene*>* getNodeGenes();
@@ -47,11 +58,15 @@ public:
 	double getFitness();
 	double getSharedFitness();
 	bool getElite();
+	int getRecentCoreOp();
+	bool hasActiveCascade();
+	std::vector<int> getActiveCascadeConnections();
 	void setId(long);
 	void setSpecies(int);
 	void setFitness(double);
 	void setSharedFitness(double);
 	void setElite(bool);
+	void setRecentCoreOp(int);
 	void printGenotype();
 	bool operator==(const Genome&);
 };

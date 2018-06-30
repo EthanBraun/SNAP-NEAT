@@ -7,6 +7,7 @@
 
 class Mutation{
 public:
+	// NEAT mutations
 	static void mutate(Genome*, Population*);
 	static void addNode(Genome*, Population*);
 	static void addConnection(Genome*, Population*);
@@ -15,6 +16,15 @@ public:
 	static void toggleConnection(Genome*);
 	static void removeNode(Genome*);
 	static void removeConnection(Genome*);
+
+	// RBF-NEAT mutations
+	static void addRbfNode(Genome*, Population*);
+	static void perturbRbfNode(Genome*, Population*);
+
+	// Cascade-NEAT mutation
+	static void addCascadeNode(Genome*, Population*);
 };
+
+void _ordInsert(std::vector<int>*, int);
 
 #endif

@@ -19,17 +19,17 @@ Network::Network(Genome* genome){
 		switch(currentNodeGene->type){
 		case(Input):
 			inputLayerKeys->push_back(currentNodeGene->innovation);
-			inputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
+			inputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, false, 0.0, 0.0)));
 			break;
 		case(Hidden):
 			if(currentNodeGene->enabled){
 				hiddenLayerKeys->push_back(currentNodeGene->innovation);
-				hiddenLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
+				hiddenLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, currentNodeGene->rbf, currentNodeGene->center, currentNodeGene->radius)));
 			}
 			break;
 		case(Output):
 			outputLayerKeys->push_back(currentNodeGene->innovation);
-			outputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation)));
+			outputLayer->insert(std::pair<int, Neuron*>(currentNodeGene->innovation, new Neuron(currentNodeGene->innovation, false, 0.0, 0.0)));
 			break;
 		}
 	}
@@ -88,31 +88,41 @@ Network::Network(Genome* genome){
 	}
 
 	// TODO: Establish activation order of neurons (currently just using gene order)
+	//     note - as long as the order is consistent it shouldn't matter
 }
 
 Network::~Network(){
+	for(int i = 0; i < connections->size(); i++){
+		delete connections->operator[](i);
+		connections->operator[](i) = NULL;
+	}
+	delete connections;
+
 	for(int i = 0; i < inputLayerKeys->size(); i++){
 		delete inputLayer->operator[](inputLayerKeys->operator[](i));
+		inputLayer->operator[](inputLayerKeys->operator[](i)) = NULL;
 	}
 	delete inputLayer;
 	delete inputLayerKeys;
 
 	for(int i = 0; i < hiddenLayerKeys->size(); i++){
 		delete hiddenLayer->operator[](hiddenLayerKeys->operator[](i));
+		hiddenLayer->operator[](hiddenLayerKeys->operator[](i)) = NULL;
 	}
 	delete hiddenLayer;
 	delete hiddenLayerKeys;
 
 	for(int i = 0; i < outputLayerKeys->size(); i++){
 		delete outputLayer->operator[](outputLayerKeys->operator[](i));
+		outputLayer->operator[](outputLayerKeys->operator[](i)) = NULL;
 	}
 	delete outputLayer;
 	delete outputLayerKeys;
 
-	for(int i = 0; i < connections->size(); i++){
-		delete connections->operator[](i);
-	}
-	delete connections;
+	//for(int i = 0; i < connections->size(); i++){
+	//	delete connections->operator[](i);
+	//}
+	//delete connections;
 }
 
 std::vector<int>* Network::getInputLayerKeys(){

@@ -13,9 +13,12 @@ private:
 	double activation;
 	std::vector<Connection*>* inputs;
 	std::vector<Connection*>* outputs;
+	bool rbf;
+	float center;
+	float radius;
 
 public:
-	Neuron(int);
+	Neuron(int, bool, float, float);
 	~Neuron();
 	
 	int getInnovation();

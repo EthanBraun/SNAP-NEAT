@@ -27,7 +27,7 @@ void* fitnessFunction(Network* network, double* fitness, void* data){
 
 	// Max genome fitness is not mutable at runtime so macro is fine
 	if((*fitness) >= POPULATION_MAX_GENOME_FITNESS){
-		printf("\nDANK NET DETECTED:   (fitness -- %f)\n", (*fitness));
+		printf("\nFIT NET DETECTED:   (fitness -- %f)\n", (*fitness));
 		for(int i = 0; i < 4; i++){
 			outputDifference = std::abs(desiredOutputs->operator[](i) - outputs->operator[](i));
 			printf("\tOutput %d: |%f - %f| = %f   (%f)\n", i, desiredOutputs->operator[](i), outputs->operator[](i), outputDifference, (outputDifference <= 1.0) ? ((1.0 - outputDifference) / 4.0) : 0.0);

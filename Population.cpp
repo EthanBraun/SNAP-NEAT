@@ -11,6 +11,10 @@ Population::Population(Config* externalConfig){
 	config = externalConfig;
 	maxFitness = 0.0;
 	populationStagnant = false;
+	evaluations = 0;
+	for(int i = 0; i < 3; i++){
+		operatorProbs.push_back(1.0 / 3.0);
+	}
 }	
 
 Population::~Population(){
@@ -48,6 +52,15 @@ void Population::resetPopulation(){
 	innovations->clear();
 	speciesList->clear();
 	organisms->clear();
+
+	evaluations = 0;
+	neatRewards.clear();
+	rbfRewards.clear();
+	cascadeRewards.clear();
+	operatorValues.clear();
+	for(int i = 0; i < 3; i++){
+		operatorProbs[i] = (1.0 / 3.0);
+	}
 }
 
 long Population::updateGenomeId(){
@@ -75,7 +88,7 @@ int Population::updateInnovations(MutationType mType, GeneType gType, int input,
 		printf("Innovation overflow\n");
 		exit(1);
 	}
-
+	
 	return newInnovation->innovationNumber;
 }
 
@@ -148,10 +161,10 @@ void Population::initializePopulation(){
 		organisms->push_back(genome);
 	}
 	if(config->populationInitializeGenomesConnected){
-		innovationNumber = (config->genomeNumInputNodes * config->genomeNumOutputNodes) + config->genomeNumInputNodes + config->genomeNumOutputNodes + 1;
+		innovationNumber = (config->genomeNumInputNodes * config->genomeNumOutputNodes) + config->genomeNumInputNodes + config->genomeNumOutputNodes + 2;
 	}
 	else{
-		innovationNumber = config->genomeNumInputNodes + config->genomeNumOutputNodes + 1;
+		innovationNumber = config->genomeNumInputNodes + config->genomeNumOutputNodes + 2;
 	}
 }
 
@@ -604,6 +617,7 @@ double Population::evaluatePopulation(void* evaluationFunction(Network* network,
 			for(int j = 0; j < organisms->size(); j++){
 				if(evaluateGenome(evaluationFunction, organisms->operator[](j), data)){
 					endEvaluation = true;
+					printSnapneatStats();
 					break;
 				}
 			}
@@ -665,6 +679,33 @@ bool Population::evaluateGenome(void* evaluationFunction(Network* network, doubl
 	double fit = 0.0;
 	evaluationFunction(phenotype, &fit, data);
 	currentGenome->setFitness(fit);
+	if(!initialized()){
+		switch(currentGenome->getRecentCoreOp()){
+		case 0:
+			neatRewards.push_back(currentGenome->getFitness()); 
+			break;
+		case 1:
+			rbfRewards.push_back(currentGenome->getFitness()); 
+			break;
+		case 2:
+			cascadeRewards.push_back(currentGenome->getFitness()); 
+			break;
+		default:
+			break;
+		}
+		evaluations++;
+		if(initialized()){
+			setInitialOperatorValues();
+		}
+	}
+	else{
+		if(currentGenome->getRecentCoreOp() != -1){
+			updateOperatorValue((CoreMutation)currentGenome->getRecentCoreOp(), currentGenome->getFitness());	
+		}
+		updateOperatorProbs();
+		evaluations++;	
+	}
+
 	try{
 		if(speciesList->at(currentGenome->getSpecies())->members->size() != 0){
 			currentGenome->setSharedFitness(currentGenome->getFitness() / (double)speciesList->operator[](currentGenome->getSpecies())->members->size());
@@ -798,9 +839,19 @@ void Population::copyNodeGeneBernoulli(Genome* genome, NodeGene* geneA, NodeGene
 	newNodeGene->innovation = sourceNodeGene->innovation;
 	newNodeGene->type = sourceNodeGene->type;
 	newNodeGene->enabled = sourceNodeGene->enabled;
+	newNodeGene->rbf = sourceNodeGene->rbf;
+	newNodeGene->center = sourceNodeGene->center;
+	newNodeGene->radius = sourceNodeGene->radius;
+	newNodeGene->cascade = sourceNodeGene->cascade;
 	
 	if(newNodeGene->type == Hidden){
 		genome->getHiddenNodeKeys()->push_back(innov);
+	}
+	if(newNodeGene->rbf){
+		genome->getRbfNodeKeys()->push_back(innov);
+	}
+	if(newNodeGene->cascade){
+		genome->getCascadeNodeKeys()->push_back(innov);
 	}
 	genome->getNodeKeys()->push_back(innov);
 	genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(innov, newNodeGene));
@@ -814,9 +865,19 @@ void Population::copyNodeGeneBernoulli(Genome* genome, NodeGene* gene, int innov
 		newNodeGene->innovation = gene->innovation;
 		newNodeGene->type = gene->type;
 		newNodeGene->enabled = gene->enabled;
+		newNodeGene->rbf = gene->rbf;
+		newNodeGene->center = gene->center;
+		newNodeGene->radius = gene->radius;
+		newNodeGene->cascade = gene->cascade;
 
 		if(newNodeGene->type == Hidden){
 			genome->getHiddenNodeKeys()->push_back(innov);
+		}
+		if(newNodeGene->rbf){
+			genome->getRbfNodeKeys()->push_back(innov);
+		}
+		if(newNodeGene->cascade){
+			genome->getCascadeNodeKeys()->push_back(innov);
 		}
 		genome->getNodeKeys()->push_back(innov);
 		genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(innov, newNodeGene));
@@ -829,9 +890,20 @@ void Population::copyNodeGene(Genome* genome, NodeGene* gene, int innov){
 	newNodeGene->innovation = gene->innovation;
 	newNodeGene->type = gene->type;
 	newNodeGene->enabled = gene->enabled;
+	newNodeGene->rbf = gene->rbf;
+	newNodeGene->center = gene->center;
+	newNodeGene->radius = gene->radius;
+	newNodeGene->cascade = gene->cascade;
+
 
 	if(newNodeGene->type == Hidden){
 		genome->getHiddenNodeKeys()->push_back(innov);
+	}
+	if(newNodeGene->rbf){
+		genome->getRbfNodeKeys()->push_back(innov);
+	}
+	if(newNodeGene->cascade){
+		genome->getCascadeNodeKeys()->push_back(innov);
 	}
 	genome->getNodeKeys()->push_back(innov);
 	genome->getNodeGenes()->insert(std::pair<int, NodeGene*>(innov, newNodeGene));	
@@ -927,4 +999,80 @@ void Population::copyConnectionGene(Genome* genome, ConnectionGene* gene, int in
 		}
 	}
 	genome->getConnectionGenes()->insert(std::pair<int, ConnectionGene*>(innov, newConnectionGene));
+}
+
+bool Population::initialized(){
+	return (evaluations >= config->initializationPeriod);
+}
+
+// Set each initial operator value to 1 std dev above the reward mean
+void Population::setInitialOperatorValues(){
+	double neatRewardMean = _getMean(neatRewards);
+	double rbfRewardMean = _getMean(rbfRewards);
+	double cascadeRewardMean = _getMean(cascadeRewards);
+	
+	operatorValues.push_back(neatRewardMean + _getStdDev(neatRewards, neatRewardMean));
+	operatorValues.push_back(rbfRewardMean + _getStdDev(rbfRewards, rbfRewardMean));
+	operatorValues.push_back(cascadeRewardMean + _getStdDev(cascadeRewards, cascadeRewardMean));
+	
+	neatRewards.clear();
+	rbfRewards.clear();
+	cascadeRewards.clear();
+}
+
+void Population::updateOperatorValue(CoreMutation mutation, double reward){
+	operatorValues[mutation] += (config->operatorValueLearningRate * (reward - operatorValues[mutation]));
+}
+
+void Population::updateOperatorProbs(){
+	int maxValueOp = (operatorValues[0] >= operatorValues[1]) ? 0 : 1;
+	maxValueOp = (operatorValues[maxValueOp] >= operatorValues[2]) ? maxValueOp : 2;
+	
+	for(int i = 0; i < 3; i++){
+		if(i == maxValueOp){
+			operatorProbs[i] += (config->operatorProbLearningRate * ((1.0 - (2.0 * config->minOpProb)) - operatorProbs[i]));
+		}
+		else{
+			operatorProbs[i] += (config->operatorProbLearningRate * (config->minOpProb - operatorProbs[i]));
+		}
+	}
+}
+
+CoreMutation Population::chooseOpWeighted(){
+	double opProbSum = operatorProbs[0] + operatorProbs[1] + operatorProbs[2];
+	double roll = (rand() / (double)(RAND_MAX)) * opProbSum;
+
+	if(roll < operatorProbs[0]){
+		return Neat;
+	}
+	else if(roll < operatorProbs[0] + operatorProbs[1]){
+		return Rbf;
+	}
+	else{
+		return Cascade;
+	}
+}
+
+void Population::printSnapneatStats(){
+	printf("\tEvaluations: %ld\n\n", evaluations);
+	printf("\tOperator probs:\n");	
+	printf("\t\tNEAT:    %f\n", operatorProbs[0]);	
+	printf("\t\tRBF:     %f\n", operatorProbs[1]);	
+	printf("\t\tCascade: %f\n\n", operatorProbs[2]);	
+}
+
+double _getMean(std::vector<double> v){
+	double sum = 0.0;
+	for(int i = 0; i < v.size(); i++){
+		sum += v[i];
+	}
+	return (sum / (double)v.size());
+}
+
+double _getStdDev(std::vector<double> v, double mean){
+	double devSum = 0.0;
+	for(int i = 0; i < v.size(); i++){
+		devSum += pow(v[i] - mean, 2);
+	}
+	return sqrt(devSum / (double)v.size());
 }
